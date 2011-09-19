@@ -1,4 +1,4 @@
-# TreeLearn 
+
 TreeLearn will one day be an ensemble decision tree learning library for Python. For now, however, the only base classifier is a randomized tree and the only ensemble is Breiman's Random Forest. For more information on this learning algorithm, see http://www.stat.berkeley.edu/~breiman/RandomForests/. 
 
 ## Creating a RandomForest
