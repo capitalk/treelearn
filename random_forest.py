@@ -1,3 +1,19 @@
+# TreeLearn
+#
+# Copyright (C) Capital K Partners
+# Author: Alex Rubinsteyn
+# Contact: alex [at] capitalkpartners [dot] com 
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# Lesser General Public License for more details.
+
 import numpy as np 
 import random 
 import math 
@@ -6,11 +22,11 @@ from tree_helpers import *
 import randomized_tree as tree 
     
 class RandomForest:
-    def __init__(self, classes = None, bag_percent=0.7, numtrees = 50, **keywords):
+    def __init__(self, classes = None, bag_percent=0.7, ntree = 50, **keywords):
         self.classes = None
         self.trees = [] 
         self.bag_percent = bag_percent
-        self.numtrees = numtrees 
+        self.ntrees = ntrees 
         self.tree_params = keywords 
     
     def __str__(self): 
@@ -29,7 +45,7 @@ class RandomForest:
         bagsize = int(self.bag_percent * n)
         permute = np.random.permutation
         
-        for i in xrange(self.numtrees):
+        for i in xrange(self.ntrees):
             p = permute(n)
             indices = p[:bagsize] 
             data_bag = X[indices, :]
