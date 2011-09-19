@@ -1,4 +1,3 @@
-
 TreeLearn will one day be an ensemble decision tree learning library for Python. For now, however, the only base classifier is a randomized tree and the only ensemble is Breiman's Random Forest. For more information on this learning algorithm, see http://www.stat.berkeley.edu/~breiman/RandomForests/. 
 
 ## Creating a RandomForest
@@ -12,13 +11,13 @@ Optional parameters:
     
  * bag_percent = what percentage of your data each individual tree is trained on
     
- * num_features_per_node = number of features each node of a tree should consider. (default = log2 of total feature count)
+ * num_features_per_node = number of features each node of a tree should consider. (default = log2 of total features)
     
  * min_leaf_size = stop splitting if we get down to this number of data points 
 
  * max_height = stop splitting if we exceed this number of tree levels
 
-  * thresholds = how many feature value thesholds to consider (use None to consider all values)
+ * thresholds = how many feature value thesholds to consider (use None to consider all values)
 
 ## Training
 
