@@ -22,7 +22,7 @@ from tree_helpers import *
 import randomized_tree as tree 
     
 class RandomForest:
-    def __init__(self, classes = None, bag_percent=0.7, ntree = 50, **keywords):
+    def __init__(self, classes = None, bag_percent=0.7, ntrees = 50, **keywords):
         self.classes = None
         self.trees = [] 
         self.bag_percent = bag_percent
