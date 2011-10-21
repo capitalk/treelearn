@@ -1,27 +1,13 @@
-# TreeLearn
-#
-# Copyright (C) Capital K Partners
-# Author: Alex Rubinsteyn
-# Contact: alex [at] capitalkpartners [dot] com 
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# Lesser General Public License for more details.
 
 import numpy as np 
 import random_forest as rf 
-
+import randomized_tree as rt 
 
 def test_simple_tree():
     data = np.array([[0,0], [0.1, 0.1], [0.15, 0.15], [0.98, 0.98], [1.0, 1.0], [.99,.99]])
     labels = np.array([0,0,0, 1,1,1])
-    forest = rf.RandomForest(min_leaf_size=1)
+    t = rt.RandomizedTree(min_leaf_size=1)
+    forest = rf.RandomForest(base_classifier=t)
     forest.fit(data,labels)
     print forest 
     pred0 = forest.predict(np.array([0.05, 0.05]))

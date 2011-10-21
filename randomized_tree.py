@@ -1,19 +1,3 @@
-# TreeLearn
-#
-# Copyright (C) Capital K Partners
-# Author: Alex Rubinsteyn
-# Contact: alex [at] capitalkpartners [dot] com 
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# Lesser General Public License for more details.
-
 import numpy as np 
 import scipy 
 import scipy.weave 
@@ -45,7 +29,7 @@ class TreeNode:
         
     def predict(self, data):
         x = data[self.feature_idx] 
-        if x <= self.split_val:
+        if x < self.split_val:
             return self.left.predict(data)
         else:
             return self.right.predict(data) 
@@ -56,28 +40,61 @@ class TreeNode:
         else:
             featureStr = "x[" + str(self.feature_idx) + "]"
         longer_indent = indent + "  " 
-        left_str = self.left.to_str(indent = longer_indent)
-        right_str = self.right.to_str(indent = longer_indent)
-        condition_str = "if %s < %f:" % (featureStr, self.split_val)
-        return indent + condition_str + "\n" + left_str + "\n" + indent + "else:\n" + right_str 
+        left = self.left.to_str(indent = longer_indent)
+        right = self.right.to_str(indent = longer_indent)
+        cond = "if %s < %f:" % (featureStr, self.split_val)
+        return indent + cond + "\n" +  left + "\n" + indent + "else:\n" + right
         
     def __str__(self, prefix=""):
         return self.to_str()
         
     
 class RandomizedTree:
-    def __init__(self, classes = None, num_features_per_node=None, min_leaf_size=5, max_height = 100, thresholds=10):
+    """Decision tree which only inspects a random subset of the features
+       at each split. Uses Gini impurity to compare possible data splits. 
+
+    Parameters
+    ----------
+    num_features_per_node : int, optional (default = None).
+        At each split, how many features should we consider splitting. 
+        If None, then use log(total number of features). 
+
+    min_leaf_size : int, optional (default=15). 
+        Stop splitting when the data gets this small. 
+    
+    max_height : int, optional (default = 100). 
+        Stop growing tree at this height. 
+    
+    max_thresholds : int, optional (default = None). 
+        At each split, generate at most this number of evenly spaced thresholds
+        between the min and max feature values. The default behavior is
+        to consider all midpoints between unique feature values. 
+    
+    classes : int list, optional (default = None). 
+        If None, then use the unique values of the classes given to 'fit'. 
+    
+    feature_names : string list (default = None). 
+        Names to use for pretty printing. 
+    """
+
+    def __init__(self, 
+            num_features_per_node=None, 
+            min_leaf_size=15, 
+            max_height = 100, 
+            max_thresholds=None, 
+            classes = None, 
+            feature_names = None):
         self.root = None 
         self.num_features_per_node = num_features_per_node 
         self.min_leaf_size = min_leaf_size
         self.max_height = max_height 
-        self.classes = None 
-        self.nclasses = 0 
-        self.feature_names = None 
-        if thresholds == 'all':
+        self.classes = classes 
+        self.nclasses = len(classes) if classes is not None else 0
+        self.feature_names = feature_names 
+        if max_thresholds is None:
             self.get_thresholds = self.all_thresholds
         else:
-            self.nthresholds = thresholds 
+            self.max_thresholds = max_thresholds 
             self.get_thresholds = self.threshold_subset 
 
     def __str__(self):
@@ -89,8 +106,8 @@ class RandomizedTree:
     def threshold_subset(self, x):
         unique_vals = np.unique(x)
         num_unique_vals = len(unique_vals)
-        k = self.nthresholds
-        if num_unique_vals <= k: return unique_vals
+        k = self.max_thresholds
+        if num_unique_vals <= k: return midpoints(unique_vals)
         else:
             mid = unique_vals[num_unique_vals/2] 
             half_k =(k+1)/2
@@ -98,10 +115,10 @@ class RandomizedTree:
             upper = np.linspace(mid, unique_vals[-1], half_k)
             return np.concatenate( (lower[1:], upper))
             
-    # get midpoints between all unique values         
+    
     def all_thresholds(self, x): 
-        unique_vals = np.unique(x)
-        return (unique_vals[:-1] + unique_vals[1:]) / 2.0
+        """get midpoints between all unique values"""
+        return midpoints(np.unique(x))
             
     def split(self, data, labels, m, height):
         nfeatures = data.shape[1]
