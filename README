@@ -7,9 +7,13 @@ To create a random foest using default parameters:
 
 Optional parameters:
 
- * ntrees = total number of decision trees in the forest
-    
- * bag_percent = what percentage of your data each individual tree is trained on
+ * base_classifier = any classifier which obeys the fit/predict protocol, defaults to a RandomizedTree 
+
+ * num_classifiers = size of the forest 
+ 
+ * bag_percent = what percentage of your data each individual classifier is trained on
+
+## RandomizedTree options 
     
  * num_features_per_node = number of features each node of a tree should consider. (default = log2 of total features)
     
@@ -17,7 +21,7 @@ Optional parameters:
 
  * max_height = stop splitting if we exceed this number of tree levels
 
- * thresholds = how many feature value thesholds to consider (use None to consider all values)
+ * max_thresholds = how many feature value thesholds to consider (use None to consider all values)
 
 ## Training
 
