@@ -2,9 +2,11 @@ import copy
 import numpy as np 
 import random 
 import math 
-import sklearn.svm
 
-class BaggedClassifier:
+from sklearn.base import BaseEstimator 
+from sklearn.svm import LinearSVC
+
+class BaggedClassifier(BaseEstimator):
     """
         Train an ensemble of classifiers using a 
         subset of the data for each base classifier.  
@@ -19,25 +21,25 @@ class BaggedClassifier:
     
     sample_percent : float, optional (default=0.5). 
         How much of the data set goes into each bootstrap sample. 
+        
+    
     """
 
     def __init__(self, 
-            base_model=sklearn.svm.LinearSVC(), 
+            base_classifier=LinearSVC(), 
             num_classifiers = 50, 
             sample_percent=0.5):
+            #num_sample_features=None, 
+            #weighted=False):
         self.classifiers = [] 
         self.classes = []
         self.base_classifier = base_classifier
         self.num_classifiers = num_classifiers
         self.sample_percent = sample_percent 
+        #self.num_sample_features = num_sample_features 
+        #self.weighted = weighted
     
-    def __str__(self): 
-        return "[BaggingEnsemble]\n" + "\n".join([
-            "classifier " + str(i) + ": " + str(t) 
-            for i,t in enumerate(self.trees)
-        ])
-        
-    def fit(self, X, Y):
+    def fit(self, X, Y, **fit_keywords):
         self.classes = np.unique(Y) 
         self.classifiers = [] 
         
@@ -49,10 +51,9 @@ class BaggedClassifier:
             data_subset = X[indices, :]
             label_subset = Y[indices] 
             clf = copy.copy(self.base_classifier)
-            clf.fit(data_subset, label_subset)
+            clf.fit(data_subset, label_subset, **fit_keywords)
             self.classifiers.append(clf)
 
-    
     def predict(self, X, return_probs=False):
         """Every classifier in the ensemble votes for a class. Return the class
            which got a majority vote and optionally also return the full 
@@ -72,11 +73,11 @@ class BaggedClassifier:
                 votes[ys == c, class_index] += weight
                 
         majority_indices = np.argmax(votes, axis=1)        
-        majority_labels = np.array([ cs[idx] for idx in majority_indices])
-        if return_probs
+        majority_labels = np.array([class_list[i] for i in majority_indices])
+        if return_probs:
             sums = np.sum(votes, axis=1)
             probs = votes / np.array([sums], dtype='float').T
             return majority_labels, probs
-        else 
+        else:
             return majority_labels 
             

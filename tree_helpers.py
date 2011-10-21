@@ -88,4 +88,5 @@ def eval_gini_split(classes, left_labels, right_labels):
          
         return_val = left_weight * left_gini + right_weight  * right_gini; 
     """
-    return inline(code, ['classes', 'left_labels', 'right_labels'], local_dict=None, verbose=2)
+    return inline(code, ['classes', 'left_labels', 'right_labels'], \
+        local_dict=None, verbose=2)

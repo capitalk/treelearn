@@ -5,51 +5,12 @@ import scipy.stats
 import random 
 import math 
 
+from sklearn.base import BaseEstimator 
+from constant_leaf import ConstantLeaf
+from tree_node import TreeNode 
 from tree_helpers import * 
 
-class ConstantLeaf:
-    def __init__(self, v):
-        self.v = v
-    
-    def to_str(self, indent="", feature_names=None):
-        return indent + "Constant(" + str(self.v) + ")"
-    
-    def __str__(self): 
-        return self.to_str() 
-        
-    def predict(self, data):
-        return self.v 
-
-class TreeNode:
-    def __init__(self, feature_idx, split_val, left, right):
-        self.feature_idx = feature_idx
-        self.split_val = split_val 
-        self.left = left
-        self.right = right
-        
-    def predict(self, data):
-        x = data[self.feature_idx] 
-        if x < self.split_val:
-            return self.left.predict(data)
-        else:
-            return self.right.predict(data) 
-    
-    def to_str(self, indent="", feature_names=None):
-        if feature_names:
-            featureStr = feature_names[feature_idx]
-        else:
-            featureStr = "x[" + str(self.feature_idx) + "]"
-        longer_indent = indent + "  " 
-        left = self.left.to_str(indent = longer_indent)
-        right = self.right.to_str(indent = longer_indent)
-        cond = "if %s < %f:" % (featureStr, self.split_val)
-        return indent + cond + "\n" +  left + "\n" + indent + "else:\n" + right
-        
-    def __str__(self, prefix=""):
-        return self.to_str()
-        
-    
-class RandomizedTree:
+class RandomizedTree(BaseEstimator):
     """Decision tree which only inspects a random subset of the features
        at each split. Uses Gini impurity to compare possible data splits. 
 
@@ -91,17 +52,13 @@ class RandomizedTree:
         self.classes = classes 
         self.nclasses = len(classes) if classes is not None else 0
         self.feature_names = feature_names 
+        self.max_thresholds = max_thresholds 
         if max_thresholds is None:
             self.get_thresholds = self.all_thresholds
         else:
-            self.max_thresholds = max_thresholds 
             self.get_thresholds = self.threshold_subset 
 
-    def __str__(self):
-        return self.root.to_str(feature_names = self.feature_names)
-    
-    def __repr__(self):
-        return str(self)
+
     
     def threshold_subset(self, x):
         unique_vals = np.unique(x)
@@ -173,6 +130,9 @@ class RandomizedTree:
             return self.split(data, labels, m, height)
                 
     def fit(self, data, labels, feature_names = None): 
+        data = np.atleast_2d(data)
+        labels = np.atleast_1d(labels)
+        
         if self.classes is None: 
             self.classes = np.unique(labels)
             self.nclasses = len(self.classes)
@@ -186,5 +146,11 @@ class RandomizedTree:
             m = self.num_features_per_node 
         self.root = self.mk_node(data, labels, m, 1)
 
-    def predict(self, vec):
-        return self.root.predict(vec) 
+    def predict(self, X):
+        X = np.atleast_2d(X)
+        n_samples = X.shape[0]
+        # create an output array and let the tree nodes recursively fill it
+        outputs = np.zeros(n_samples)
+        mask = np.ones(n_samples, dtype='bool')
+        self.root.fill_predict(X, outputs, mask)
+        return outputs 
