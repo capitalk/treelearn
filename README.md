@@ -23,7 +23,7 @@ Place labels in an n-length numpy array. Then call:
 
     forest.fit(Xtrain,Y)
 
-If you're lazy, there's also a helper for training random forests:
+If you're lazy, there's a helper for simultaneously creating and training a random forest:
 
     forest = treelearn.train_random_forest(X, Y)
 
