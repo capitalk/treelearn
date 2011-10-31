@@ -21,7 +21,7 @@ import scipy.weave
 
 def midpoints(x):
     return (x[1:] + x[:-1])/2.0
-
+    
 def majority(classes, labels): 
     votes = np.zeros(len(classes))
     for i, c in enumerate(classes):

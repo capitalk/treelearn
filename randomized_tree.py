@@ -31,7 +31,7 @@ class RandomizedTree(BaseEstimator):
         between the min and max feature values. The default behavior is
         to consider all midpoints between unique feature values. 
     
-    classes : int list, optional (default = None). 
+    classes : sequence of int labels, optional (default = None). 
         If None, then use the unique values of the classes given to 'fit'. 
     
     feature_names : string list (default = None). 
@@ -49,8 +49,12 @@ class RandomizedTree(BaseEstimator):
         self.num_features_per_node = num_features_per_node 
         self.min_leaf_size = min_leaf_size
         self.max_height = max_height 
-        self.classes = classes 
-        self.nclasses = len(classes) if classes is not None else 0
+        if classes is None: 
+            self.classes = None
+            self.nclasses = 0 
+        else: 
+            self.classes = np.asarray(classes)
+            self.nclasses = len(classes) 
         self.feature_names = feature_names 
         self.max_thresholds = max_thresholds 
         if max_thresholds is None:
@@ -60,11 +64,20 @@ class RandomizedTree(BaseEstimator):
 
 
     
+    def all_thresholds(self, x): 
+        """get midpoints between all unique values"""
+        if len(x) > 1: 
+            return midpoints(np.unique(x))
+        else: 
+            return x 
+    
     def threshold_subset(self, x):
+        """return a set of thresholds smaller in size than the actual number
+           of unique values"""
         unique_vals = np.unique(x)
         num_unique_vals = len(unique_vals)
         k = self.max_thresholds
-        if num_unique_vals <= k: return midpoints(unique_vals)
+        if num_unique_vals <= k: return self.all_thresholds(unique_vals)
         else:
             mid = unique_vals[num_unique_vals/2] 
             half_k =(k+1)/2
@@ -72,10 +85,6 @@ class RandomizedTree(BaseEstimator):
             upper = np.linspace(mid, unique_vals[-1], half_k)
             return np.concatenate( (lower[1:], upper))
             
-    
-    def all_thresholds(self, x): 
-        """get midpoints between all unique values"""
-        return midpoints(np.unique(x))
             
     def split(self, data, labels, m, height):
         nfeatures = data.shape[1]

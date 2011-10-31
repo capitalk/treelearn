@@ -38,18 +38,21 @@ class BaggedClassifier(BaseEstimator):
     
     sample_percent : float, optional (default=0.5). 
         How much of the data set goes into each bootstrap sample. 
-        
     
+    replacement : bool, optional (default = True). 
+        Sample with our without replacement. 
     """
 
     def __init__(self, 
             base_classifier=LinearSVC(), 
+            replacement=True, 
             num_classifiers = 50, 
             sample_percent=0.5):
             #num_sample_features=None, 
             #weighted=False):
         self.classifiers = [] 
         self.classes = []
+        self.replacement = replacement 
         self.base_classifier = base_classifier
         self.num_classifiers = num_classifiers
         self.sample_percent = sample_percent 
@@ -63,8 +66,11 @@ class BaggedClassifier(BaseEstimator):
         n = X.shape[0]
         bagsize = int(math.ceil(self.sample_percent * n))
         for i in xrange(self.num_classifiers):
-            p = np.random.permutation(n)
-            indices = p[:bagsize] 
+            if self.replacement: 
+                indices = np.random.random_integers(0,n-1,bagsize)
+            else:
+                p = np.random.permutation(n)
+                indices = p[:bagsize] 
             data_subset = X[indices, :]
             label_subset = Y[indices] 
             clf = copy.copy(self.base_classifier)
