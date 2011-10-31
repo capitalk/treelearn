@@ -8,11 +8,7 @@ are RandomizedTree and SVM_Tree (uses a hyperplane for each split).
 
 A random forest is simply a bagging ensemble of randomized tree. To construct
 these with default parameters:
-
-    from randomized_tree import RandomizedTree
-    from bagging import BaggedClassifier
-    
-    forest = BaggedEnsemble(base_classifier = RandomizedTree())
+    forest = treelearn.BaggedEnsemble(base_classifier = treelearn.RandomizedTree())
 
 
 ## Training

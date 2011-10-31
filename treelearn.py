@@ -17,6 +17,7 @@
 import bagging
 from randomized_tree import RandomizedTree 
 from svm_tree import SVM_Tree
+from bagging import BaggedClassifier 
 
 def train_random_forest(X, Y, num_trees = 50, sample_percent=0.65,  **tree_args):
     """A random forest is a bagging ensemble of randomized trees, so it can
@@ -38,7 +39,7 @@ def train_random_forest(X, Y, num_trees = 50, sample_percent=0.65,  **tree_args)
     """
     tree = RandomizedTree(**tree_args)
 
-    forest = bagging.BaggedClassifier(
+    forest = BaggedClassifier(
         base_classifier = tree, 
         num_classifiers=num_trees,
         sample_percent = sample_percent)
@@ -66,7 +67,7 @@ def train_svm_forest(X, Y, num_trees = 50, sample_percent=0.65, **tree_args):
     """
     tree = SVM_Tree(**tree_args)
 
-    forest = bagging.BaggedClassifier(
+    forest = BaggedClassifier(
         base_classifier = tree, 
         num_classifiers=num_trees,
         sample_percent = sample_percent)
