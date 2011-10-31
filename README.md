@@ -38,6 +38,8 @@ If you're lazy, there's a helper for simultaneously creating and training a rand
  
  * sample_percent = what percentage of your data each classifier is trained on
  
+ * replacement = sample with or without replacement 
+ * 
 ## RandomizedTree options 
     
  * num_features_per_node = number of features each node of a tree should
