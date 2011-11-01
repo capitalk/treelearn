@@ -73,6 +73,7 @@ class ClassifierEnsemble(BaseEnsemble):
         # sample another subset of the data and use the model 
         # we just train to generate predictions 
         beta = self.weighting 
+        n = X.shape[0]
         if beta or self.verbose:
             error_sample_indices = np.random.random_integers(0,n-1,bagsize)
             error_subset = X[error_sample_indices, :] 

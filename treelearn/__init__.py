@@ -7,6 +7,8 @@ from classifier_ensemble import ClassifierEnsemble
 from recipes import train_svm_forest, train_random_forest
 
 __all__ = [
-  'BaggedClassifier', 'RandomizedTree', 'SVM_Tree', 'ConstantLeaf', 
-  'TreeNode', 'train_svm_forest', 'train_random_forest'
+  'ClassifierEnsemble', 'RegressionEnsemble', 
+  'RandomizedTree', 'TreeNode', 'ConstantLeaf', 
+  'ClassifierTree',
+  'train_svm_forest', 'train_random_forest'
 ] 
