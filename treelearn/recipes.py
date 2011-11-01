@@ -16,7 +16,7 @@
 
 from randomized_tree import RandomizedTree 
 from svm_tree import SVM_Tree
-from ensemble import ClassifierEnsemble 
+from classifier_ensemble import ClassifierEnsemble 
 from sklearn.linear_model import LogisticRegression
 
 def train_random_forest(X, Y, num_trees = 50, bagging_percent=0.65,  **tree_args):

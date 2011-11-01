@@ -17,7 +17,7 @@
 
 import numpy as np 
 from recipes import train_random_forest, train_svm_forest
-from ensemble import ClassifierEnsemble
+from classifier_ensemble import ClassifierEnsemble
 from randomized_tree import RandomizedTree 
 from sklearn.linear_model import LogisticRegression
 
