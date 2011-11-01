@@ -14,12 +14,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # Lesser General Public License for more details.
 
-import bagging
 from randomized_tree import RandomizedTree 
 from svm_tree import SVM_Tree
-from bagging import BaggedClassifier 
+from ensemble import ClassifierEnsemble 
+from sklearn.linear_model import LogisticRegression
 
-def train_random_forest(X, Y, num_trees = 50, sample_percent=0.65,  **tree_args):
+def train_random_forest(X, Y, num_trees = 50, bagging_percent=0.65,  **tree_args):
     """A random forest is a bagging ensemble of randomized trees, so it can
     be implemented by combining the BaggedClassifier and RandomizedTree objects.
     This function is just a helper to your life easier.
@@ -33,22 +33,22 @@ def train_random_forest(X, Y, num_trees = 50, sample_percent=0.65,  **tree_args)
     
     num_trees : how big is the forest?
     
-    sample_percent : what subset of the data is each tree trained on?
+    bagging_percent : what subset of the data is each tree trained on?
     
     **tree_args :  parameters for individual decision tree. 
     """
     tree = RandomizedTree(**tree_args)
 
-    forest = BaggedClassifier(
-        base_classifier = tree, 
-        num_classifiers=num_trees,
-        sample_percent = sample_percent)
+    forest = ClassifierEnsemble(
+        base_model = tree, 
+        num_models=num_trees,
+        bagging_percent = bagging_percent)
     forest.fit(X,Y)
     return forest
     
 
 
-def train_svm_forest(X, Y, num_trees = 50, sample_percent=0.65, **tree_args):
+def train_svm_forest(X, Y, num_trees = 50, bagging_percent=0.65, **tree_args):
     """A random forest whose base classifier is a SVM-Tree (rather
     than splitting individual features we project each point onto a hyperplane)
     
@@ -61,15 +61,15 @@ def train_svm_forest(X, Y, num_trees = 50, sample_percent=0.65, **tree_args):
     
     num_trees : how big is the forest?
     
-    sample_percent : what subset of the data is each tree trained on?
+    bagging_percent : what subset of the data is each tree trained on?
     
     **tree_args :  parameters for individual svm decision tree
     """
     tree = SVM_Tree(**tree_args)
 
-    forest = BaggedClassifier(
-        base_classifier = tree, 
-        num_classifiers=num_trees,
-        sample_percent = sample_percent)
+    forest = ClassifierEnsemble(
+        base_model = tree, 
+        num_models = num_trees,
+        bagging_percent = bagging_percent)
     forest.fit(X,Y)
     return forest

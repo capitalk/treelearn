@@ -16,9 +16,10 @@
 
 
 import numpy as np 
-from treelearn import train_random_forest, train_svm_forest
-from bagging import BaggedClassifier 
+from recipes import train_random_forest, train_svm_forest
+from ensemble import ClassifierEnsemble
 from randomized_tree import RandomizedTree 
+from sklearn.linear_model import LogisticRegression
 
 data = np.array([[0,0], [0.1, 0.1], [0.15, 0.15], [0.98, 0.98], [1.0, 1.0], [.99,.99]])
 labels = np.array([0,0,0, 1,1,1])
@@ -45,7 +46,8 @@ def test_svm_forest():
     try_predictor(train_svm_forest(data, labels, C='random', min_leaf_size=1))
 
 def test_stacked_random_forest():
-    clf = RandomizedTree(min_leaf_size=1)
-    ensemble = BaggedClassifier(base_classifier=clf, stacking=True)
+    t = RandomizedTree(min_leaf_size=1)
+    lr = LogisticRegression()
+    ensemble = ClassifierEnsemble(base_model=t, stacking_model=lr)
     ensemble.fit(data, labels)
     try_predictor(ensemble)

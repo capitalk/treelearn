@@ -1,5 +1,5 @@
-from bagging import BaggedClassifier
-from train import train_svm_forest, train_random_forest
+from ensemble import ClassifierEnsemble
+from recipes import train_svm_forest, train_random_forest
 from randomized_tree import RandomizedTree
 from svm_tree import SVM_Tree
 from constant_leaf import ConstantLeaf
