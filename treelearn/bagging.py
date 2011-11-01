@@ -127,14 +127,13 @@ class BaggedClassifier(BaseEstimator):
                     self.weights[i] = f_score 
                 if self.verbose:
                     print "Actual non-zero:", np.sum(error_labels != 0)
-                    pred_nnz = np.sum(y_pred != 0)
-                    print "Predicted non-zero:", pred_nnz
-                    y_pos = error_labels == 1
-                    pred_pos = y_pred == 1
-                    tp = np.sum(y_pos & pred_pos)
-                    print "True positives:", tp 
-                    print "False positives:", pred_nnz - tp 
-                    
+                    num_pred_nz = np.sum(y_pred != 0)
+                    print "Predicted non-zero:", num_pred_nz
+                    pred_correct = (y_pred == error_labels)
+                    pred_nz = (y_pred != 0)
+                    num_true_nz = np.sum(pred_correct & pred_nz)
+                    print "True non-zero:", num_true_nz
+                    print "False non-zero:", num_pred_nz - num_true_nz
                     
         # stacking works by treating the outputs of each base classifier as the 
         # inputs to an additional meta-classifier

@@ -49,9 +49,8 @@ class SVM_Tree_Node(BaseEstimator):
         C = C = 10.0 ** (np.random.randn()-1) if self.C == 'random' else self.C
         self.model = LinearSVC(C=C)
         
-        
         if self.depth >= self.max_depth:
-            self.model.fit(X, Y)
+            self.model.fit(X, Y, **fit_keywords)
         else:
             feature_indices = np.random.permutation(n_features)
             self.subspace  = feature_indices[:self.num_features_per_node]
