@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
    name = "treelearn",
-   version = "0.0.4",
+   version = "0.0.5",
    #package_dir = { '' : 'treelearn' },
    packages = ['treelearn'],
    install_requires = [ 'scikit-learn' ],

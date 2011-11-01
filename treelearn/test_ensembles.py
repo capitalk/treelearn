@@ -16,7 +16,9 @@
 
 
 import numpy as np 
-import treelearn 
+from treelearn import train_random_forest, train_svm_forest
+from bagging import BaggedClassifier 
+from randomized_tree import RandomizedTree 
 
 data = np.array([[0,0], [0.1, 0.1], [0.15, 0.15], [0.98, 0.98], [1.0, 1.0], [.99,.99]])
 labels = np.array([0,0,0, 1,1,1])
@@ -37,7 +39,13 @@ def try_predictor(model):
 
 
 def test_simple_forest():
-    try_predictor(treelearn.train_random_forest(data, labels, min_leaf_size=1))
+    try_predictor(train_random_forest(data, labels, min_leaf_size=1))
     
 def test_svm_forest():
-    try_predictor(treelearn.train_svm_forest(data, labels, C='random', min_leaf_size=1))
+    try_predictor(train_svm_forest(data, labels, C='random', min_leaf_size=1))
+
+def test_stacked_random_forest():
+    clf = RandomizedTree(min_leaf_size=1)
+    ensemble = BaggedClassifier(base_classifier=clf, stacking=True)
+    ensemble.fit(data, labels)
+    try_predictor(ensemble)
