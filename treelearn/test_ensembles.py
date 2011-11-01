@@ -21,22 +21,29 @@ from ensemble import ClassifierEnsemble
 from randomized_tree import RandomizedTree 
 from sklearn.linear_model import LogisticRegression
 
-data = np.array([[0,0], [0.1, 0.1], [0.15, 0.15], [0.98, 0.98], [1.0, 1.0], [.99,.99]])
-labels = np.array([0,0,0, 1,1,1])
+n = 200
+left_data = np.random.randn(n, 10)
+left_labels = np.zeros(n)
 
-expect0 = np.array([0.05, 0.05])
-expect1 = np.array([0.995, 0.995])
+right_data = 10*(np.random.randn(n,10)-2)
+right_labels = np.ones(n)
+
+data = np.concatenate([left_data, right_data])
+labels = np.concatenate([left_labels, right_labels])
+
 
 def try_predictor(model):
     print "Trying predictor:", model 
 
-    pred0 = model.predict(expect0)
-    print "Expected: 0, Received:", pred0
-    assert pred0 == 0
+    pred0 = model.predict(left_data)
+    fp = np.sum(pred0 != 0)
+    print "False positives:", fp
+    assert fp < (n / 10)
     
-    pred1 = model.predict(expect1)
-    print "Expected: 1, Received:", pred1
-    assert pred1 == 1
+    pred1 = model.predict(right_data)
+    fn = np.sum(pred1 != 1)
+    print "False negatives:", fn
+    assert fn < (n/ 10)
 
 
 def test_simple_forest():

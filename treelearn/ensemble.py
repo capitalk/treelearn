@@ -213,17 +213,16 @@ class ClassifierEnsemble(BaseEnsemble):
         return votes / np.array([sums], dtype='float').T
     
     def _predict_stacked_probs(self, X):
-        votes = self._predict_votes(X)
-        return self.stacking_model.predict_proba(votes)
+        transformed = self.weighted_transform(X)
+        return self.stacking_model.predict_proba(transformed)
 
     def predict_proba(self, X):
         if self.need_to_fit:
             raise RuntimeError("Trying to call 'predict_proba' before 'fit'")
-        ps = self._predict_normalized_votes(X)
         if self.stacking_model:
-            return self.stacking_model.predict_proba(ps)
+            return self._predict_stacked_probs(X) 
         else:
-            return ps
+            return self._predict_normalized_votes(X)
 
     def predict(self, X, return_probs=False):
         """Every classifier in the ensemble votes for a class. 
