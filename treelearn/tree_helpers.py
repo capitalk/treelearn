@@ -19,10 +19,16 @@ import numpy as np
 import scipy
 import scipy.weave 
 
+
 def midpoints(x):
     return (x[1:] + x[:-1])/2.0
+
+def threshold_subset(x, k):
     
-def majority(classes, labels): 
+    
+def majority(labels, classes=None): 
+    if classes is None: 
+        classes = np.unique(labels)
     votes = np.zeros(len(classes))
     for i, c in enumerate(classes):
         votes[i] = np.sum(labels == c)

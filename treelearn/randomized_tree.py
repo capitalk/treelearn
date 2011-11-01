@@ -130,7 +130,7 @@ class RandomizedTree(BaseEstimator):
         # if labels are all same 
         if len(labels) <= self.min_leaf_size or height > self.max_height:
             self.nleaves += 1
-            return ConstantLeaf(majority(self.classes, labels))
+            return ConstantLeaf(majority(labels, self.classes))
             
         elif np.all(labels == labels[0]):
             self.nleaves += 1

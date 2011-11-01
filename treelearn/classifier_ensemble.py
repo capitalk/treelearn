@@ -68,19 +68,20 @@ class ClassifierEnsemble(BaseEnsemble):
         self.class_list = list(self.classes)
         
         
-    def _created_model(self, X, Y, indices, model):
+    def _created_model(self, X, Y, indices, i, model):
         # to assign an F-score weight to each classifier, 
         # sample another subset of the data and use the model 
         # we just train to generate predictions 
         beta = self.weighting 
         n = X.shape[0]
+        bagsize = len(indices)
         if beta or self.verbose:
             error_sample_indices = np.random.random_integers(0,n-1,bagsize)
             error_subset = X[error_sample_indices, :] 
             error_labels = Y[error_sample_indices]
             y_pred = model.predict(error_subset)
             if self.weighting: 
-                f_score = fbeta_score(error_labels, y_pred, )
+                f_score = fbeta_score(error_labels, y_pred, beta)
                 self.weights[i] = f_score 
             if self.verbose:
                 print "Actual non-zero:", np.sum(error_labels != 0)

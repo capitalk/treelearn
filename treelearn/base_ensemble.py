@@ -66,7 +66,7 @@ class BaseEnsemble(BaseEstimator):
             model.fit(data_subset, label_subset, **fit_keywords)
             self.models.append(model)
             
-            self._created_model(X, Y, indices, model)
+            self._created_model(X, Y, indices, i, model)
         
         self.weights /= np.sum(self.weights)
         

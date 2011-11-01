@@ -15,8 +15,9 @@
 # Lesser General Public License for more details.
 
 from randomized_tree import RandomizedTree 
-from svm_tree import SVM_Tree
+from oblique_tree import ObliqueTree
 from classifier_ensemble import ClassifierEnsemble 
+from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 
 def train_random_forest(X, Y, num_trees = 50, bagging_percent=0.65,  **tree_args):
@@ -48,7 +49,7 @@ def train_random_forest(X, Y, num_trees = 50, bagging_percent=0.65,  **tree_args
     
 
 
-def train_svm_forest(X, Y, num_trees = 50, bagging_percent=0.65, **tree_args):
+def train_svm_forest(X, Y, num_trees = 50, bagging_percent=0.65, C = 1.0, **tree_args):
     """A random forest whose base classifier is a SVM-Tree (rather
     than splitting individual features we project each point onto a hyperplane)
     
@@ -63,9 +64,18 @@ def train_svm_forest(X, Y, num_trees = 50, bagging_percent=0.65, **tree_args):
     
     bagging_percent : what subset of the data is each tree trained on?
     
+    C : regularization tradeoff parameter
+    
     **tree_args :  parameters for individual svm decision tree
     """
-    tree = SVM_Tree(**tree_args)
+    split_classifier = LinearSVC(C=C)
+    leaf_classifier = LinearSVC(C=C)
+    
+    tree = ObliqueTree(
+        split_classifier=split_classifier, 
+        leaf_model=leaf_classifier, 
+        **tree_args
+    )
 
     forest = ClassifierEnsemble(
         base_model = tree, 
