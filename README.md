@@ -38,7 +38,10 @@ If you're lazy, there's a helper for simultaneously creating and training a rand
  
  * sample_percent = what percentage of your data each classifier is trained on
  
- * replacement = sample with or without replacement 
+ * sample_replacement = sample with or without replacement 
+
+ * stacking = treat outputs of base classifiers as inputs to logistic regression
+
  
 
 ## RandomizedTree options 
