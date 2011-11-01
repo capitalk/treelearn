@@ -75,7 +75,7 @@ class SVM_Tree_Node(BaseEstimator):
                         depth = self.depth +1, 
                         max_depth = self.max_depth, 
                         min_leaf_size = self.min_leaf_size)
-                    child.fit(X_slice, Y_slice, class_weight=class_weight)
+                    child.fit(X_slice, Y_slice, **fit_keywords)
                 self.children[c] = child 
     
     def predict(self, X):
