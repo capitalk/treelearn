@@ -9,7 +9,7 @@ are RandomizedTree and SVM_Tree (uses a hyperplane for each split).
 A random forest is simply a bagging ensemble of randomized tree. To construct
 these with default parameters:
 
-    forest = treelearn.BaggedClassifier(base_classifier = treelearn.RandomizedTree())
+    forest = treelearn.ClassifierEnsemble(base_model = treelearn.RandomizedTree())
 
 
 ## Training
@@ -30,20 +30,19 @@ If you're lazy, there's a helper for simultaneously creating and training a rand
     forest.predict(Xtest)
  
 
-## BaggedClassifier options
+## ClassifierEnsemble options
 
- * base_classifier = any classifier which obeys the fit/predict protocol
+ * base_model = any classifier which obeys the fit/predict protocol
 
- * num_classifiers = size of the forest 
+ * num_models = size of the forest 
  
- * sample_percent = what percentage of your data each classifier is trained on
+ * bagging_percent = what percentage of your data each classifier is trained on
  
- * sample_replacement = sample with or without replacement 
+ * bagging_replacement = sample with or without replacement 
 
- * stacking = treat outputs of base classifiers as inputs to logistic regression
+ * stacking_model = treat outputs of base classifiers as inputs to given model
 
  
-
 ## RandomizedTree options 
     
  * num_features_per_node = number of features each node of a tree should
@@ -58,6 +57,7 @@ If you're lazy, there's a helper for simultaneously creating and training a rand
 ## SVM_Tree options 
  * num_features_per_node = size of random feature subset at each node, 
         default = sqrt(total number of features)
+ 
  * C = Tradeoff between error and L2 regularizer of linear SVM
         
  * max_depth = When you get to this depth, train an SVM on all features 
