@@ -36,6 +36,9 @@ class RandomizedTree(BaseEstimator):
     
     feature_names : string list (default = None). 
         Names to use for pretty printing. 
+        
+    verbose : bool (default = False).
+        Print debugging output. 
     """
 
     def __init__(self, 
@@ -44,7 +47,8 @@ class RandomizedTree(BaseEstimator):
             max_height = 100, 
             max_thresholds=None, 
             classes = None, 
-            feature_names = None):
+            feature_names = None, 
+            verbose = False):
         self.root = None 
         self.num_features_per_node = num_features_per_node 
         self.min_leaf_size = min_leaf_size
@@ -61,7 +65,7 @@ class RandomizedTree(BaseEstimator):
             self.get_thresholds = self.all_thresholds
         else:
             self.get_thresholds = self.threshold_subset 
-
+        self.verbose = verbose 
 
     
     def all_thresholds(self, x): 

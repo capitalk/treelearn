@@ -20,11 +20,15 @@ import numpy as np
 from tree_helpers import * 
 
 def test_majority():
-    classes = np.array([1,2,3])
     labels = np.array([1,1,1,2,3,3,3,2,3,3,3,1,3,3,3,3])
-    result = majority(classes, labels)
+    result = majority(labels)
     print "Expected 3:, Received:", result 
     assert result == 3
+    classes = [1,2]
+    result = majority(labels, classes)
+    print "Expected 1:, Received:", result 
+    assert result == 1
+    
 
 def test_gini():
     classes = np.array([0,1])

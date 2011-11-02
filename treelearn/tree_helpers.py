@@ -23,8 +23,6 @@ import scipy.weave
 def midpoints(x):
     return (x[1:] + x[:-1])/2.0
 
-def threshold_subset(x, k):
-    
     
 def majority(labels, classes=None): 
     if classes is None: 
