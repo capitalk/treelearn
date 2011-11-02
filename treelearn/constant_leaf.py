@@ -30,7 +30,11 @@ class ConstantLeaf:
         
     def predict(self, X):
         X = np.atleast_2d(X)
-        outputs = np.zeros(X.shape[0])
+        if isinstance(self.v, int):
+            dtype = 'int32'
+        else:
+            dtype = 'float'
+        outputs = np.zeros(X.shape[0], dtype=dtype)
         outputs[:] = self.v
         return outputs 
         

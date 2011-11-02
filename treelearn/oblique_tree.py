@@ -60,7 +60,6 @@ class ObliqueTree(BaseEstimator):
             leaf_model = LinearSVC(), 
             split_classifier = LinearSVC(), 
             num_features_per_node = None, 
-            regression = False, 
             max_depth=3, 
             min_leaf_size=50, 
             randomize_split_params={}, 
@@ -69,7 +68,6 @@ class ObliqueTree(BaseEstimator):
                 
         self.leaf_model = leaf_model 
         self.split_classifier = split_classifier 
-        self.regression = regression 
         self.max_depth = max_depth 
         self.min_leaf_size = min_leaf_size 
         self.num_features_per_node = num_features_per_node 
@@ -90,16 +88,11 @@ class ObliqueTree(BaseEstimator):
         
         if num_features_per_node is None:
             num_features_per_node = int(math.ceil(math.sqrt(X.shape[0])))
+            
         elif num_features_per_node > n_features:
             num_features_per_node = n_features 
         
-        if np.can_cast(Y.dtype, np.int64) or not self.regression:
-            if self.verbose: 
-                print "[oblique_tree] Classification task"
-            self.classes = list(np.unique(Y))
-        else:
-            if self.verbose: 
-                print "[oblique_tree] Regression task"
+        self.classes = list(np.unique(Y))
         
         self.root = _ObliqueTreeNode(
             split_classifier = self.split_classifier, 

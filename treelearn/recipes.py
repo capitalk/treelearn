@@ -50,7 +50,7 @@ def train_random_forest(X, Y, num_trees = 10, bagging_percent=0.65,  **tree_args
     
 
 
-def train_svm_forest(X, Y, num_trees = 10, bagging_percent=0.65, C = 1, **tree_args):
+def train_svm_forest(X, Y, num_trees = 10, bagging_percent=0.65, C = 'random', **tree_args):
     """A random forest whose base classifier is a SVM-Tree (rather
     than splitting individual features we project each point onto a hyperplane)
     
