@@ -1,7 +1,5 @@
 TreeLearn started as a Python implementation of Breiman's Random Forest 
-but is being slowly generalized into a tree ensemble library. Currently 
-the only ensemble method is a BaggedClassifier and the two base classifiers
-are RandomizedTree and SVM_Tree (uses a hyperplane for each split). 
+but is being slowly generalized into a tree ensemble library. 
 
 
 ## Creating a Random Forest
