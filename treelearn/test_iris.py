@@ -11,15 +11,18 @@ y = iris.target
 
 classifiers = [
     
-    recipes.train_svm_tree(x,y), 
-    recipes.train_sgd_tree(x,y), 
-    recipes.train_svm_forest(x, y), 
-    recipes.train_sgd_forest(x,y), 
-    recipes.train_random_forest(x, y)
+    recipes.train_svm_tree, 
+    recipes.train_sgd_tree, 
+    recipes.train_svm_forest, 
+    recipes.train_sgd_forest, 
+    recipes.train_random_forest
 ]
 
 def test_all_classifiers():
-    for model in classifiers:
+    for model_constructor in classifiers:
+        
+        print model_constructor
+        model = model_constructor(x,y)
         print model 
         pred = model.predict(x)
         num_incorrect = np.sum(pred != y)

@@ -17,9 +17,9 @@ class RegressionEnsemble(BaseEnsemble):
             num_models, 
             bagging_percent,
             bagging_replacement, 
-            self.weighting, 
-            self.stacking_model, 
-            self.verbose)
+            weighting, 
+            stacking_model, 
+            verbose)
         
     def predict(self, X):
         weighted_outputs = self.weighted_transform(X)

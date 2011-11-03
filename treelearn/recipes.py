@@ -19,7 +19,7 @@ from randomized_tree import RandomizedTree
 from oblique_tree import ObliqueTree
 from classifier_ensemble import ClassifierEnsemble 
 from sklearn.svm import LinearSVC
-from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.linear_model import LogisticRegression, SGDClassifier, LinearRegression
 
 def train_random_forest(X, Y, num_trees = 10, bagging_percent=0.65,  **tree_args):
     """A random forest is a bagging ensemble of randomized trees, so it can
@@ -51,7 +51,7 @@ def train_random_forest(X, Y, num_trees = 10, bagging_percent=0.65,  **tree_args
 def gen_random_C():
     return 10 ** (np.random.randn())
         
-def mk_svm_tree(randomize_C = True, model_args = {}, tree_args = {}):
+def mk_svm_tree(max_depth = 3, randomize_C = True, model_args = {}, tree_args = {}):
     randomize_split_params = {}
     randomize_leaf_params = {}
     if randomize_C:
@@ -62,6 +62,7 @@ def mk_svm_tree(randomize_C = True, model_args = {}, tree_args = {}):
     leaf_classifier = LinearSVC(**model_args)
     
     tree = ObliqueTree(
+        max_depth = max_depth, 
         split_classifier=split_classifier, 
         leaf_model=leaf_classifier, 
         randomize_split_params = randomize_split_params,
@@ -70,12 +71,12 @@ def mk_svm_tree(randomize_C = True, model_args = {}, tree_args = {}):
     )
     return tree 
 
-def train_svm_tree(X, Y, randomize_C = True, model_args = {}, tree_args={}):
-    tree = mk_svm_tree(randomize_C, model_args, tree_args)
+def train_svm_tree(X, Y, max_depth = 3, randomize_C = True, model_args = {}, tree_args={}):
+    tree = mk_svm_tree(max_depth, randomize_C, model_args, tree_args)
     tree.fit(X, Y)
     return tree 
 
-def train_svm_forest(X, Y, num_trees = 10, bagging_percent=0.65, randomize_C = True, model_args ={}, tree_args={}):
+def train_svm_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, randomize_C = True, model_args ={}, tree_args={}):
     """A random forest whose base classifier is a SVM-Tree (rather
     than splitting individual features we project each point onto a hyperplane)
     
@@ -96,7 +97,7 @@ def train_svm_forest(X, Y, num_trees = 10, bagging_percent=0.65, randomize_C = T
     
     tree_args :  parameters for each tree of classifiers 
     """
-    tree = mk_svm_tree(randomize_C, model_args, tree_args)
+    tree = mk_svm_tree(max_depth, randomize_C, model_args, tree_args)
     forest = ClassifierEnsemble(
         base_model = tree, 
         num_models = num_trees,
@@ -107,7 +108,7 @@ def train_svm_forest(X, Y, num_trees = 10, bagging_percent=0.65, randomize_C = T
 def gen_random_alpha():
     return 10**(-np.random.random()*7)
 
-def mk_sgd_tree(n_examples=200000, randomize_alpha=True, model_args={}, tree_args={}):
+def mk_sgd_tree(n_examples=200000, max_depth=3, randomize_alpha=True, model_args={}, tree_args={}):
     randomize_split_params = {}
     randomize_leaf_params = {}
     if randomize_alpha:
@@ -119,6 +120,7 @@ def mk_sgd_tree(n_examples=200000, randomize_alpha=True, model_args={}, tree_arg
     leaf_classifier = SGDClassifier(n_iter = n_iter, shuffle=True, **model_args)
     
     tree = ObliqueTree(
+        max_depth = max_depth, 
         split_classifier=split_classifier, 
         leaf_model=leaf_classifier, 
         randomize_split_params = randomize_split_params,
@@ -127,12 +129,12 @@ def mk_sgd_tree(n_examples=200000, randomize_alpha=True, model_args={}, tree_arg
     )
     return tree 
 
-def train_sgd_tree(X, Y, randomize_alpha=True, model_args = {}, tree_args = {}):
-    tree = mk_sgd_tree(X.shape[0], randomize_alpha, model_args, tree_args)
+def train_sgd_tree(X, Y, max_depth=3, randomize_alpha=True, model_args = {}, tree_args={}):
+    tree = mk_sgd_tree(X.shape[0], max_depth, randomize_alpha, model_args, tree_args)
     tree.fit(X, Y)
     return tree 
     
-def train_sgd_forest(X, Y, num_trees = 10, bagging_percent=0.65, randomize_alpha=True, model_args = {}, tree_args= {}):
+def train_sgd_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, randomize_alpha=True, model_args = {}, tree_args= {}):
     """A random forest whose base classifier is a tree of SGD classifiers
     
     Parameters
@@ -153,7 +155,7 @@ def train_sgd_forest(X, Y, num_trees = 10, bagging_percent=0.65, randomize_alpha
     tree_args :  parameters for each tree
     """
     bagsize = bagging_percent * X.shape[0]
-    tree = mk_sgd_tree(bagsize, randomize_alpha, model_args, tree_args)
+    tree = mk_sgd_tree(bagsize, max_depth, randomize_alpha, model_args, tree_args)
     forest = ClassifierEnsemble(
         base_model = tree, 
         num_models = num_trees,

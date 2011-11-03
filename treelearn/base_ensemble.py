@@ -28,16 +28,13 @@ class BaseEnsemble(BaseEstimator):
             num_models, 
             bagging_percent,
             bagging_replacement,
-            random_subspace_percent,  
-            self.weighting, 
-            self.stacking_model, 
-            self.verbose):
-            
+            weighting, 
+            stacking_model, 
+            verbose):
         self.base_model = base_model
         self.num_models = num_models
         self.bagging_percent = bagging_percent 
         self.bagging_replacement = bagging_replacement 
-        self.random_subspace_percent = random_subspace_percent
         self.weighting = weighting
         self.stacking_model = stacking_model 
         self.verbose = verbose

@@ -35,6 +35,8 @@ class _ObliqueTreeNode(BaseEstimator):
         self.subspace = None 
     
     def _fit_leaf(self, X, Y, fit_keywords):
+        if self.verbose: 
+            print "Fitting leaf"
         model = deepcopy(self.leaf_model)
         for field, gen in self.randomize_leaf_params.items():
             setattr(model, field,  gen())
@@ -46,7 +48,10 @@ class _ObliqueTreeNode(BaseEstimator):
         count = X_slice.shape[0] 
         unique_ys = np.unique(Y_slice)
         if len(unique_ys) == 1:
-            child = ConstantLeaf(int(unique_ys[0]))
+            const = int(unique_ys[0])
+            if self.verbose: 
+                print "ConstantLeaf", const 
+            child = ConstantLeaf(const)
         elif count < self.min_leaf_size:
             child = self._fit_leaf(X_slice, Y_slice, fit_keywords)
         else: 
@@ -91,7 +96,7 @@ class _ObliqueTreeNode(BaseEstimator):
                 setattr(self.model, field,  gen())
                 
             self.model.fit(X_reduced, Y, **fit_keywords)
-            clear_sklearn_fields(self.model)
+            #clear_sklearn_fields(self.model)
             pred = self.model.predict(X_reduced)
             
             for c in self.classes:
@@ -106,6 +111,9 @@ class _ObliqueTreeNode(BaseEstimator):
                     
     def predict(self, X):
         nrows = X.shape[0]
+        if self.verbose:
+            print "[oblique_tree_node] predict at depth", self.depth 
+            
         if self.subspace is not None:
             X_reduced = X[:, self.subspace] 
             pred = self.model.predict(X_reduced)
@@ -121,6 +129,10 @@ class _ObliqueTreeNode(BaseEstimator):
                 mask = (pred == c)
                 X_slice = X[mask, :]
                 count = X_slice.shape[0]
+                
                 if count > 0:
-                    outputs[mask] = self.children[c].predict(X_slice)
+                    if self.verbose: 
+                        print "Calling predict on child", c
+                    pred = self.children[c].predict(X_slice)
+                    outputs[mask] = pred 
             return outputs 
