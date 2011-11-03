@@ -47,10 +47,10 @@ def try_predictor(model):
 
 
 def test_simple_forest():
-    try_predictor(train_random_forest(data, labels, verbose=True))
+    try_predictor(train_random_forest(data, labels))
     
 def test_svm_forest():
-    try_predictor(train_svm_forest(data, labels, verbose=True))
+    try_predictor(train_svm_forest(data, labels,  tree_args={'verbose':True}))
 
 def test_stacked_random_forest():
     t = RandomizedTree(min_leaf_size=1)

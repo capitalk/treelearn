@@ -10,7 +10,11 @@ y = iris.target
 
 
 classifiers = [
+    
+    recipes.train_svm_tree(x,y), 
+    recipes.train_sgd_tree(x,y), 
     recipes.train_svm_forest(x, y), 
+    recipes.train_sgd_forest(x,y), 
     recipes.train_random_forest(x, y)
 ]
 

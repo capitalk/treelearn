@@ -21,7 +21,8 @@ import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.svm  import LinearSVC
 
-from tree_helpers import majority 
+from tree_helpers import majority
+from typecheck import check_estimator, check_dict, check_int, check_bool
 from oblique_tree_node import _ObliqueTreeNode
 
         
@@ -66,6 +67,17 @@ class ObliqueTree(BaseEstimator):
             randomize_leaf_params={}, 
             verbose = False):
                 
+        # check everyone's types -- I can't give up the OCaml instincts 
+        # also, if running this code remotely it's nice to know when something
+        # goes wrong before we send an object over to AWS 
+        check_estimator(leaf_model)
+        check_estimator(split_classifier)
+        check_int(max_depth)
+        check_int(min_leaf_size)
+        check_dict(randomize_split_params)
+        check_dict(randomize_leaf_params)
+        check_bool(verbose)
+        
         self.leaf_model = leaf_model 
         self.split_classifier = split_classifier 
         self.max_depth = max_depth 
