@@ -20,6 +20,15 @@ import scipy
 import scipy.weave 
 
 
+# some sklearn classifiers leave behind large data members after fitting
+# which make serialization a pain--- clear those fields 
+def clear_sklearn_fields(clf):
+    if hasattr(clf, 'label_'):
+        clf.label_ = None
+    if hasattr(clf, 'sample_weight'):
+        clf.sample_weight = None 
+    
+
 def midpoints(x):
     return (x[1:] + x[:-1])/2.0
     

@@ -48,14 +48,15 @@ def train_random_forest(X, Y, num_trees = 10, bagging_percent=0.65,  **tree_args
     forest.fit(X,Y)
     return forest
     
+def gen_random_C():
+    return 10 ** (np.random.randn())
+        
 def mk_svm_tree(randomize_C = True, model_args = {}, tree_args = {}):
     randomize_split_params = {}
     randomize_leaf_params = {}
     if randomize_C:
-        def mk_c():
-            return 10 ** (np.random.randn())
-        randomize_split_params['C'] = mk_c
-        randomize_leaf_params['C'] = mk_c
+        randomize_split_params['C'] = gen_random_C
+        randomize_leaf_params['C'] = gen_random_C
 
     split_classifier = LinearSVC(**model_args)
     leaf_classifier = LinearSVC(**model_args)
@@ -103,18 +104,19 @@ def train_svm_forest(X, Y, num_trees = 10, bagging_percent=0.65, randomize_C = T
     forest.fit(X,Y)
     return forest
 
+def gen_random_alpha():
+    return 10**(-np.random.random()*7)
+
 def mk_sgd_tree(n_examples, randomize_alpha=True, model_args={}, tree_args={}):
     randomize_split_params = {}
     randomize_leaf_params = {}
     if randomize_alpha:
-        def mk_alpha():
-            return 10**(-np.random.random()*7)
-        randomize_split_params['alpha'] = mk_alpha
-        randomize_leaf_params['alpha'] = mk_alpha
+        randomize_split_params['alpha'] = gen_random_alpha
+        randomize_leaf_params['alpha'] = gen_random_alpha
     
     n_iter = np.ceil(10**6 / n_examples)
-    split_classifier = SGDClassifier(n_iter = n_iter, **model_args)
-    leaf_classifier = SGDClassifier(n_iter = n_iter)
+    split_classifier = SGDClassifier(n_iter = n_iter, shuffle=True, **model_args)
+    leaf_classifier = SGDClassifier(n_iter = n_iter, shuffle=True, **model_args)
     
     tree = ObliqueTree(
         split_classifier=split_classifier, 

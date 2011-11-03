@@ -1,7 +1,7 @@
 from copy import deepcopy 
 import numpy as np 
 from sklearn.base import BaseEstimator
-from tree_helpers import majority 
+from tree_helpers import majority, clear_sklearn_fields
 from constant_leaf import ConstantLeaf 
 
 class _ObliqueTreeNode(BaseEstimator):
@@ -39,10 +39,10 @@ class _ObliqueTreeNode(BaseEstimator):
         for field, gen in self.randomize_leaf_params.items():
             setattr(model, field,  gen())
         model.fit(X, Y, **fit_keywords) 
+        clear_sklearn_fields(model)
         return model 
         
     def _fit_child(self, X_slice, Y_slice, fit_keywords):
-        print "_fit_child", X_slice.shape 
         count = X_slice.shape[0] 
         unique_ys = np.unique(Y_slice)
         if len(unique_ys) == 1:
@@ -91,6 +91,7 @@ class _ObliqueTreeNode(BaseEstimator):
                 setattr(self.model, field,  gen())
                 
             self.model.fit(X_reduced, Y, **fit_keywords)
+            clear_sklearn_fields(self.model)
             pred = self.model.predict(X_reduced)
             
             for c in self.classes:
@@ -121,9 +122,5 @@ class _ObliqueTreeNode(BaseEstimator):
                 X_slice = X[mask, :]
                 count = X_slice.shape[0]
                 if count > 0:
-                    print self.children[c]
-                    child_output = self.children[c].predict(X_slice)
-                    print "Count", count, "Child output shape:", child_output.shape, child_output.dtype 
-                    print "Outputs", outputs.shape, outputs.dtype 
-                    outputs[mask] = child_output
+                    outputs[mask] = self.children[c].predict(X_slice)
             return outputs 

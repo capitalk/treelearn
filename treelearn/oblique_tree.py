@@ -21,7 +21,7 @@ import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.svm  import LinearSVC
 
-from tree_helpers import majority
+from tree_helpers import majority, clear_sklearn_fields
 from typecheck import check_estimator, check_dict, check_int, check_bool
 from oblique_tree_node import _ObliqueTreeNode
 
@@ -119,6 +119,7 @@ class ObliqueTree(BaseEstimator):
             verbose = self.verbose 
         )
         self.root.fit(X, Y, **fit_keywords)
+        
         
     def predict(self, X):
         return self.root.predict(X)
