@@ -52,7 +52,7 @@ If you're lazy, there's a helper for simultaneously creating and training a rand
 
  * max_thresholds = how many feature value thesholds to consider (use None for all values)
 
-## SVM_Tree options 
+## ObliqueTree options 
  * num_features_per_node = size of random feature subset at each node, 
         default = sqrt(total number of features)
  
