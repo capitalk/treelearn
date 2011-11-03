@@ -4,6 +4,7 @@ from tree_node import TreeNode
 from randomized_tree import RandomizedTree
 from oblique_tree import ObliqueTree
 from classifier_ensemble import ClassifierEnsemble
+from regression_ensemble import RegressionEnsemble
 from recipes import * 
 
 __all__ = [

@@ -47,18 +47,14 @@ class ClassifierEnsemble(BaseEnsemble):
             weighting=None, 
             stacking_model=None,
             verbose=False):
-        BaseEnsemble.__init__(self)
-        self.base_model = base_model
-        self.num_models = num_models
-        self.bagging_percent = bagging_percent 
-        self.bagging_replacement = bagging_replacement 
-        self.weighting = weighting
-        self.stacking_model = stacking_model 
-        self.verbose = verbose 
-        
-        self.need_to_fit = True
-        self.weights = None 
-        self.models = None
+        BaseEnsemble.__init__(self, 
+            base_model, 
+            num_models, 
+            bagging_percent,
+            bagging_replacement, 
+            self.weighting, 
+            self.stacking_model, 
+            self.verbose)
         self.classes = None
         self.class_list = None 
         

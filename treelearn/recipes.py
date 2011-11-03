@@ -107,7 +107,7 @@ def train_svm_forest(X, Y, num_trees = 10, bagging_percent=0.65, randomize_C = T
 def gen_random_alpha():
     return 10**(-np.random.random()*7)
 
-def mk_sgd_tree(n_examples, randomize_alpha=True, model_args={}, tree_args={}):
+def mk_sgd_tree(n_examples=200000, randomize_alpha=True, model_args={}, tree_args={}):
     randomize_split_params = {}
     randomize_leaf_params = {}
     if randomize_alpha:

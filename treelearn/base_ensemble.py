@@ -23,13 +23,29 @@ import math
 from sklearn.base import BaseEstimator 
 
 class BaseEnsemble(BaseEstimator):
-    def __init__(self):
+    def __init__(self, 
+            base_model, 
+            num_models, 
+            bagging_percent,
+            bagging_replacement,
+            random_subspace_percent,  
+            self.weighting, 
+            self.stacking_model, 
+            self.verbose):
+            
+        self.base_model = base_model
+        self.num_models = num_models
+        self.bagging_percent = bagging_percent 
+        self.bagging_replacement = bagging_replacement 
+        self.random_subspace_percent = random_subspace_percent
+        self.weighting = weighting
+        self.stacking_model = stacking_model 
+        self.verbose = verbose
+        
         self.need_to_fit = True
-        self.bagging_percent = None 
-        self.bagging_replacement = None 
-        self.base_model = None
-        self.num_models = None 
-        self.verbose = None 
+        self.weights = None 
+        self.models = None
+        
         
     def fit(self, X, Y, **fit_keywords):
         assert self.base_model is not None
