@@ -4,11 +4,13 @@ from tree_node import TreeNode
 from randomized_tree import RandomizedTree
 from oblique_tree import ObliqueTree
 from classifier_ensemble import ClassifierEnsemble
-from recipes import train_svm_forest, train_random_forest
+from recipes import * 
 
 __all__ = [
   'ClassifierEnsemble', 'RegressionEnsemble', 
   'RandomizedTree', 'TreeNode', 'ConstantLeaf', 
   'ObliqueTree',
-  'train_svm_forest', 'train_random_forest'
+  'mk_svm_tree', 'mk_sgd_tree', 
+  'train_svm_tree', 'train_sgd_tree', 
+  'train_svm_forest', 'train_random_forest', 'train_sgd_forest', 
 ]
