@@ -89,60 +89,67 @@ class RandomizedTree(BaseEstimator):
             upper = np.linspace(mid, unique_vals[-1], half_k)
             return np.concatenate( (lower[1:], upper))
 
-    def _mk_node(self, data, labels, m, height):
-        # if labels are all same 
-        if len(labels) <= self.min_leaf_size or height > self.max_height:
+    #def _mk_node(self, data, labels, m, height):
+        ## if labels are all same 
+        #if len(labels) <= self.min_leaf_size or height > self.max_height:
+            #self.nleaves += 1
+            #return ConstantLeaf(majority(labels, self.classes))
+            
+        #elif np.all(labels == labels[0]):
+            #self.nleaves += 1
+            #return ConstantLeaf(labels[0])
+        #else:
+            #return self._split(data, labels, m, height)
+            
+            
+    def _split(self, data, labels, m, height):
+        n_samples = data.shape[0]
+        if n_samples <= self.min_leaf_size or height > self.max_height:
             self.nleaves += 1
             return ConstantLeaf(majority(labels, self.classes))
-            
         elif np.all(labels == labels[0]):
             self.nleaves += 1
             return ConstantLeaf(labels[0])
         else:
-            return self._split(data, labels, m, height)
+            nfeatures = data.shape[1]
+            # randomly draw m feature indices. 
+            # should be more efficient than explicitly constructing a permutation
+            # vector and then keeping only the head elements 
+            random_feature_indices = random.sample(xrange(nfeatures), m)
+            best_split_score = np.inf
+            best_feature_idx = None
+            best_thresh = None 
+            classes = self.classes
             
-            
-    def _split(self, data, labels, m, height):
-        nfeatures = data.shape[1]
-        # randomly draw m feature indices. 
-        # should be more efficient than explicitly constructing a permutation
-        # vector and then keeping only the head elements 
-        random_feature_indices = random.sample(xrange(nfeatures), m)
-        best_split_score = np.inf
-        best_feature_idx = None
-        best_thresh = None 
-        classes = self.classes
-        
-        for feature_idx in random_feature_indices:
-            feature_vec = data[:, feature_idx]
-            thresholds = self.get_thresholds(feature_vec)
-            for thresh in thresholds:
-                combined_score = eval_gini_split(classes, feature_vec, thresh, labels)
+            for feature_idx in random_feature_indices:
+                feature_vec = data[:, feature_idx]
+                thresholds = self.get_thresholds(feature_vec)
+                thresh, combined_score = find_best_gini_split(classes, feature_vec, thresholds, labels)
                 if combined_score < best_split_score:
                     best_split_score = combined_score
                     best_feature_idx = feature_idx
                     best_thresh = thresh 
                     
-        left_mask = data[:, best_feature_idx] < best_thresh 
-        right_mask = ~left_mask
-        
-        left_data = data[left_mask, :] 
-        right_data = data[right_mask, :] 
-        
-        left_labels = labels[left_mask] 
-        right_labels = labels[right_mask]
-        
-        # get rid of references before recursion so data can be deleted
-        del labels 
-        del data 
-        del random_feature_indices 
-        del left_mask 
-        del right_mask 
-        
-        left_node = self._mk_node(left_data, left_labels, m, height+1)
-        right_node = self._mk_node (right_data, right_labels, m, height+1)
-        node = TreeNode(best_feature_idx, best_thresh, left_node, right_node)
-        return node 
+            left_mask = data[:, best_feature_idx] < best_thresh 
+            right_mask = ~left_mask
+            
+            left_data = data[left_mask, :] 
+            right_data = data[right_mask, :] 
+            
+            left_labels = labels[left_mask] 
+            right_labels = labels[right_mask]
+            
+            # get rid of references before recursion so data can be deleted
+            del labels 
+            del data 
+            del random_feature_indices 
+            del left_mask 
+            del right_mask 
+            
+            left_node = self._split(left_data, left_labels, m, height+1)
+            right_node = self._split(right_data, right_labels, m, height+1)
+            node = TreeNode(best_feature_idx, best_thresh, left_node, right_node)
+            return node 
 
                 
     def fit(self, data, labels, feature_names = None): 
@@ -160,7 +167,7 @@ class RandomizedTree(BaseEstimator):
             m = int(round(math.log(nfeatures, 2)))
         else:
             m = self.num_features_per_node 
-        self.root = self._mk_node(data, labels, m, 1)
+        self.root = self._split(data, labels, m, 1)
 
     def predict(self, X):
         X = np.atleast_2d(X)

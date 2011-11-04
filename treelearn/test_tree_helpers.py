@@ -41,11 +41,22 @@ def test_gini():
     print "Expected 0.5, Received:", result2 
     assert result2 == 0.5
 
+feature_vec = np.array([0.1, 0.5, 0.9, 1.1])
 def test_eval_split():
-    f = np.array([0.1, 0.5, 0.9, 1.1])
-    slow = slow_eval_split(classes, f, 0.5, mixed)
+    slow = slow_eval_split(classes, feature_vec, 0.5, mixed)
     print "Slow GINI", slow 
-    fast = eval_gini_split(classes, f, 0.5, mixed)
+    fast = eval_gini_split(classes, feature_vec, 0.5, mixed)
     print "Fast GINI", fast 
     assert slow == fast 
-         
+
+
+labels = np.array([0, 0, 1, 1])    
+thresholds = np.unique(feature_vec)
+def test_eval_all_splits():
+    thresh_slow, score_slow = slow_find_best_gini_split(classes, feature_vec, thresholds, labels)
+    print "Slow Thresh", thresh_slow, "Score", score_slow
+    assert thresh_slow == 0.5 
+    thresh_fast, score_fast = find_best_gini_split(classes, feature_vec, thresholds, labels)
+    print "Fast Thresh", thresh_fast, "Score", score_fast
+    assert thresh_fast == 0.5
+    
