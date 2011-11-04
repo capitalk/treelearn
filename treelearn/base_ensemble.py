@@ -54,6 +54,9 @@ class BaseEnsemble(BaseEstimator):
         self.need_to_fit = False 
         self.models = [] 
         
+        X = np.atleast_2d(X)
+        Y = np.atleast_1d(Y) 
+        
         n = X.shape[0]
         bagsize = int(math.ceil(self.bagging_percent * n))
         # initialize weights to be uniform, change if some other weighting
