@@ -170,20 +170,27 @@ def train_clustered_ols(X, Y, k = 10):
     cr = ClusterRegression(k)
     cr.fit(X, Y)
     return cr 
-    
 
-def train_clustered_regression_ensemble(X, Y, lowest_k = 2, highest_k = 50, num_models=10, stacking=True):
+def mk_regression_ensemble(lowest_k = 2, highest_k = 50, num_models = 10, stacking= True): 
     if stacking:
         stacking_model = LinearRegression(fit_intercept=False)
     else:
         stacking_model = None 
     def random_k():
         return np.random.randint(lowest_k, highest_k+1)
-    ensemble = RegressionEnsemble(
+    return RegressionEnsemble(
         base_model = ClusterRegression(highest_k), 
         num_models = num_models, 
         stacking_model = stacking_model, 
         randomize_params = {'k': random_k}
+    )
+    
+def train_regression_ensemble(X, Y, lowest_k = 2, highest_k = 50, num_models=10, stacking=True):
+    ensemble = mk_regression_ensemble (
+        lowest_k = lowest_k, 
+        highest_k = highest_k, 
+        num_models = num_models, 
+        stacking = stacking
     )
     ensemble.fit(X, Y)
     return ensemble 

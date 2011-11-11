@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 
 regressors = [
     recipes.train_clustered_ols, 
-    recipes.train_clustered_regression_ensemble
+    recipes.train_regression_ensemble
 ]
  
 def test_all_regressors():
