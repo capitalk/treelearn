@@ -1,4 +1,4 @@
-
+import numpy as np 
 from sklearn.linear_model import LinearRegression 
 from base_ensemble import BaseEnsemble
 
@@ -8,8 +8,8 @@ class RegressionEnsemble(BaseEnsemble):
             num_models = 50, 
             bagging_percent=0.5, 
             bagging_replacement=True, 
-            weighting=None, 
             stacking_model=None,
+            randomize_params = {}, 
             verbose=False):
                 
         BaseEnsemble.__init__(self, 
@@ -17,14 +17,16 @@ class RegressionEnsemble(BaseEnsemble):
             num_models, 
             bagging_percent,
             bagging_replacement, 
-            weighting, 
             stacking_model, 
+            randomize_params, 
             verbose)
         
     def predict(self, X):
-        weighted_outputs = self.weighted_transform(X)
-        return np.sum(weighted_outputs, axis=1)
-
+        pred = self.transform(X)
+        if self.stacking_model: 
+            return self.stacking_model.predict(pred)
+        else: 
+            return np.mean(pred, axis=1)
 
     def _init_fit(self, X, Y): 
         pass 

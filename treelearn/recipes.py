@@ -15,11 +15,13 @@
 # Lesser General Public License for more details.
 
 import numpy as np 
+from regression_ensemble import RegressionEnsemble
+from cluster_regression import ClusterRegression 
 from randomized_tree import RandomizedTree 
 from oblique_tree import ObliqueTree
 from classifier_ensemble import ClassifierEnsemble 
 from sklearn.svm import LinearSVC
-from sklearn.linear_model import LogisticRegression, SGDClassifier, LinearRegression
+from sklearn.linear_model import LogisticRegression, SGDClassifier, LinearRegression, Ridge 
 
 def train_random_forest(X, Y, num_trees = 10, bagging_percent=0.65,  **tree_args):
     """A random forest is a bagging ensemble of randomized trees, so it can
@@ -51,7 +53,7 @@ def train_random_forest(X, Y, num_trees = 10, bagging_percent=0.65,  **tree_args
 def gen_random_C():
     return 10 ** (np.random.randn())
         
-def mk_svm_tree(max_depth = 3, randomize_C = True, model_args = {}, tree_args = {}):
+def mk_svm_tree(max_depth = 3, randomize_C = False, model_args = {}, tree_args = {}):
     randomize_split_params = {}
     randomize_leaf_params = {}
     if randomize_C:
@@ -71,12 +73,12 @@ def mk_svm_tree(max_depth = 3, randomize_C = True, model_args = {}, tree_args = 
     )
     return tree 
 
-def train_svm_tree(X, Y, max_depth = 3, randomize_C = True, model_args = {}, tree_args={}):
+def train_svm_tree(X, Y, max_depth = 3, randomize_C = False, model_args = {}, tree_args={}):
     tree = mk_svm_tree(max_depth, randomize_C, model_args, tree_args)
     tree.fit(X, Y)
     return tree 
 
-def train_svm_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, randomize_C = True, model_args ={}, tree_args={}):
+def train_svm_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, randomize_C = False, model_args ={}, tree_args={}):
     """A random forest whose base classifier is a SVM-Tree (rather
     than splitting individual features we project each point onto a hyperplane)
     
@@ -108,7 +110,7 @@ def train_svm_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, 
 def gen_random_alpha():
     return 10**(-np.random.random()*7)
 
-def mk_sgd_tree(n_examples=200000, max_depth=3, randomize_alpha=True, model_args={}, tree_args={}):
+def mk_sgd_tree(n_examples=200000, max_depth=3, randomize_alpha=False, model_args={}, tree_args={}):
     randomize_split_params = {}
     randomize_leaf_params = {}
     if randomize_alpha:
@@ -129,12 +131,12 @@ def mk_sgd_tree(n_examples=200000, max_depth=3, randomize_alpha=True, model_args
     )
     return tree 
 
-def train_sgd_tree(X, Y, max_depth=3, randomize_alpha=True, model_args = {}, tree_args={}):
+def train_sgd_tree(X, Y, max_depth=3, randomize_alpha=False, model_args = {}, tree_args={}):
     tree = mk_sgd_tree(X.shape[0], max_depth, randomize_alpha, model_args, tree_args)
     tree.fit(X, Y)
     return tree 
     
-def train_sgd_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, randomize_alpha=True, model_args = {}, tree_args= {}):
+def train_sgd_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, randomize_alpha=False, model_args = {}, tree_args= {}):
     """A random forest whose base classifier is a tree of SGD classifiers
     
     Parameters
@@ -162,3 +164,28 @@ def train_sgd_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, 
         bagging_percent = bagging_percent)
     forest.fit(X,Y)
     return forest
+
+def train_clustered_ols(X, Y, k = 10): 
+    """Cluster data and then train a linear regressor per cluster"""
+    cr = ClusterRegression(k)
+    cr.fit(X, Y)
+    return cr 
+    
+
+def train_clustered_regression_ensemble(X, Y, lowest_k = 2, highest_k = 50, num_models=10, stacking=True):
+    if stacking:
+        stacking_model = LinearRegression(fit_intercept=False)
+    else:
+        stacking_model = None 
+    def random_k():
+        return np.random.randint(lowest_k, highest_k+1)
+    ensemble = RegressionEnsemble(
+        base_model = ClusterRegression(highest_k), 
+        num_models = num_models, 
+        stacking_model = stacking_model, 
+        randomize_params = {'k': random_k}
+    )
+    ensemble.fit(X, Y)
+    return ensemble 
+    
+    

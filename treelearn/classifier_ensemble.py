@@ -18,10 +18,10 @@ class ClassifierEnsemble(BaseEnsemble):
     num_models : int, optional (default = 50)
         How many base classifiers to train. 
     
-    sample_percent : float, optional (default=0.5). 
+    bagging_percent : float, optional (default=0.5). 
         How much of the data set goes into each bootstrap sample. 
     
-    sample_replacement : bool, optional (default = True). 
+    bagging_replacement : bool, optional (default = True). 
         Sample with our without replacement. 
     
     weighting : None or float, optional (default=None). 
@@ -46,6 +46,7 @@ class ClassifierEnsemble(BaseEnsemble):
             bagging_replacement=True, 
             weighting=None, 
             stacking_model=None,
+            randomize_params = {}, 
             verbose=False):
                 
         BaseEnsemble.__init__(self, 
@@ -53,17 +54,17 @@ class ClassifierEnsemble(BaseEnsemble):
             num_models, 
             bagging_percent,
             bagging_replacement, 
-            weighting, 
             stacking_model, 
+            randomize_params, 
             verbose)
-            
+        self.weighting = weighting 
         self.classes = None
         self.class_list = None 
         
     def _init_fit(self, X, Y): 
         self.classes = np.unique(Y) 
         self.class_list = list(self.classes)
-        
+        self.weights = np.ones(self.num_models, dtype='float') / self.num_models
         
     def _created_model(self, X, Y, indices, i, model):
         # to assign an F-score weight to each classifier, 
@@ -77,6 +78,7 @@ class ClassifierEnsemble(BaseEnsemble):
             error_subset = X[error_sample_indices, :] 
             error_labels = Y[error_sample_indices]
             y_pred = model.predict(error_subset)
+            
             if self.weighting: 
                 f_score = fbeta_score(error_labels, y_pred, beta)
                 self.weights[i] = f_score 
@@ -111,8 +113,14 @@ class ClassifierEnsemble(BaseEnsemble):
         sums = np.sum(votes, axis=1)
         return votes / np.array([sums], dtype='float').T
     
+    def _weighted_transform(self, X):
+        pred = self.transform(X)
+        for i, w in enumerate(self.weights):
+            pred[:, i] *= w
+        return pred 
+    
     def _predict_stacked_probs(self, X):
-        transformed = self.weighted_transform(X)
+        transformed = self.transform(X)
         return self.stacking_model.predict_proba(transformed)
 
     def predict_proba(self, X):

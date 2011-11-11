@@ -28,19 +28,17 @@ class BaseEnsemble(BaseEstimator):
             num_models, 
             bagging_percent,
             bagging_replacement,
-            weighting, 
             stacking_model, 
+            randomize_params, 
             verbose):
         self.base_model = base_model
         self.num_models = num_models
         self.bagging_percent = bagging_percent 
         self.bagging_replacement = bagging_replacement 
-        self.weighting = weighting
         self.stacking_model = stacking_model 
+        self.randomize_params = randomize_params 
         self.verbose = verbose
-        
         self.need_to_fit = True
-        self.weights = None 
         self.models = None
         
         
@@ -59,9 +57,7 @@ class BaseEnsemble(BaseEstimator):
         
         n = X.shape[0]
         bagsize = int(math.ceil(self.bagging_percent * n))
-        # initialize weights to be uniform, change if some other weighting
-        # style required 
-        self.weights = np.ones(self.num_models, dtype='float')
+
         
         # each derived class needs to implement this 
         self._init_fit(X,Y)
@@ -78,18 +74,20 @@ class BaseEnsemble(BaseEstimator):
                 
             data_subset = X[indices, :]
             label_subset = Y[indices] 
-            model = copy.copy(self.base_model)
+            model = copy.deepcopy(self.base_model)
+            # randomize parameters using given functions
+            for param_name, fn in self.randomize_params.items():
+                setattr(model, param_name, fn())
             model.fit(data_subset, label_subset, **fit_keywords)
             self.models.append(model)
             
             self._created_model(X, Y, indices, i, model)
-        
-        self.weights /= np.sum(self.weights)
+    
         
         # stacking works by treating the outputs of each base classifier as the 
         # inputs to an additional meta-classifier
         if self.stacking_model:
-            transformed_data = self.weighted_transform(X)
+            transformed_data = self.transform(X)
             self.stacking_model.fit(transformed_data, Y)
         
     
@@ -97,7 +95,6 @@ class BaseEnsemble(BaseEstimator):
     have to be created by descendant classes"""
     def transform(self, X):
         """Convert each feature vector into a row of predictions."""
-        assert self.weights is not None
         assert self.models is not None 
         
         X = np.atleast_2d(X)
@@ -108,13 +105,3 @@ class BaseEnsemble(BaseEstimator):
             pred[:, i] = model.predict(X)
         return pred
     
-    def weighted_transform(self, X):
-        
-        """Output of each model, multiplied by that model's weight. A weighted
-        mean can be recovered by summing across the columns of the result."""
-        pred = self.transform(X)
-        for i, weight in enumerate(self.weights):
-            pred[:, i] *= weight 
-        return pred
-        
-            

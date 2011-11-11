@@ -5,13 +5,16 @@ from randomized_tree import RandomizedTree
 from oblique_tree import ObliqueTree
 from classifier_ensemble import ClassifierEnsemble
 from regression_ensemble import RegressionEnsemble
+from cluster_regression import ClusterRegression
 from recipes import * 
 
 __all__ = [
   'ClassifierEnsemble', 'RegressionEnsemble', 
+  'ClusterRegression', 
   'RandomizedTree', 'TreeNode', 'ConstantLeaf', 
   'ObliqueTree',
   'mk_svm_tree', 'mk_sgd_tree', 
   'train_svm_tree', 'train_sgd_tree', 
   'train_svm_forest', 'train_random_forest', 'train_sgd_forest', 
+  'train_clustered_ols', 'train_clustered_regression_ensemble'
 ]

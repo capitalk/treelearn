@@ -39,7 +39,7 @@ class _ObliqueTreeNode(BaseEstimator):
             print "Fitting leaf"
         model = deepcopy(self.leaf_model)
         for field, gen in self.randomize_leaf_params.items():
-            setattr(model, field,  gen())
+            setattr(model, field, gen())
         model.fit(X, Y, **fit_keywords) 
         clear_sklearn_fields(model)
         return model 
@@ -91,10 +91,10 @@ class _ObliqueTreeNode(BaseEstimator):
             else:
                 X_reduced = X 
             
+            
             self.model = deepcopy(self.split_classifier)
             for field, gen in self.randomize_split_params.items():
-                setattr(self.model, field,  gen())
-                
+                setattr(self.model, field, gen())
             self.model.fit(X_reduced, Y, **fit_keywords)
             #clear_sklearn_fields(self.model)
             pred = self.model.predict(X_reduced)
