@@ -16,6 +16,6 @@ __all__ = [
   'mk_svm_tree', 'mk_sgd_tree', 
   'train_svm_tree', 'train_sgd_tree', 
   'train_svm_forest', 'train_random_forest', 'train_sgd_forest', 
-  'mk_regression_ensemble', 
-  'train_clustered_ols', 'train_regression_ensemble'
+  'mk_regression_ensemble', 'mk_additive_regression_forest',  
+  'train_clustered_ols', 'train_regression_ensemble', 'train_additive_regression_forest', 
 ]
