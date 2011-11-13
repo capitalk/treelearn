@@ -8,6 +8,7 @@ import math
 from sklearn.base import BaseEstimator 
 from constant_leaf import ConstantLeaf
 from tree_node import TreeNode 
+import random 
 from tree_helpers import * 
 
 class RandomizedTree(BaseEstimator):
@@ -85,9 +86,8 @@ class RandomizedTree(BaseEstimator):
         total = len(x)
         k = self.max_thresholds 
         nsamples = min(total, k)
-        indices = np.random.permutation(total)
-        indices = indices[:nsamples]
-        return self.all_thresholds(x[indices])
+        rand_subset = random.sample(x, nsamples)
+        return self.all_thresholds(rand_subset)
     
     def _split(self, data, labels, m, height):
         n_samples = data.shape[0]
@@ -117,7 +117,7 @@ class RandomizedTree(BaseEstimator):
                     best_feature_idx = feature_idx
                     best_thresh = thresh 
                     
-            left_mask = data[:, best_feature_idx] < best_thresh 
+            left_mask = data[:, best_feature_idx] <= best_thresh 
             right_mask = ~left_mask
             
             left_data = data[left_mask, :] 

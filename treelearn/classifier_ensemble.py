@@ -44,6 +44,7 @@ class ClassifierEnsemble(BaseEnsemble):
             num_models = 50, 
             bagging_percent=0.5, 
             bagging_replacement=True, 
+            feature_subset_percent = 1.0, 
             weighting=None, 
             stacking_model=None,
             randomize_params = {}, 
@@ -76,6 +77,8 @@ class ClassifierEnsemble(BaseEnsemble):
         if beta or self.verbose:
             error_sample_indices = np.random.random_integers(0,n-1,bagsize)
             error_subset = X[error_sample_indices, :] 
+            if self.feature_subsets:
+                error_subset = error_subset[:, self.feature_subsets[i]]
             error_labels = Y[error_sample_indices]
             y_pred = model.predict(error_subset)
             
@@ -101,8 +104,14 @@ class ClassifierEnsemble(BaseEnsemble):
         n_classes = len(self.classes)
         votes = np.zeros( [n_samples, n_classes] )
         
-        for weight, model in zip(self.weights, self.models):
-            ys = model.predict(X)
+        for i, model in enumerate(self.models):
+            weight = self.weights[i]
+            if self.feature_subsets:
+                feature_indices = self.feature_subsets[i]
+                X_subset = X[:, feature_indices]
+                ys = model.predict(X_subset)
+            else:
+                ys = model.predict(X)
             for c in self.classes:
                 class_index = self.class_list.index(c)
                 votes[ys == c, class_index] += weight

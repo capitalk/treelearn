@@ -209,7 +209,7 @@ def slow_find_best_gini_split(classes, feature_vec, thresholds, labels):
             best_score = combined_score
     return best_t, best_score 
 
-def find_min_variance_split(feature_vec, thresholds, ys): 
+def slow_find_min_variance_split(feature_vec, thresholds, ys): 
     best_score = np.inf
     best_t = None
     for t in thresholds:
@@ -227,6 +227,54 @@ def find_min_variance_split(feature_vec, thresholds, ys):
                 best_t = t
     return best_t, best_score 
     
+def find_min_variance_split(feature_vec, thresholds, ys):
+    code = """
+        float best_score = 100000000000.0; 
+        double best_thresh = 0.0; 
+        int n_thresholds = Nthresholds[0]; 
+        int n_rows = Nys[0]; 
+        
+        
+        for (int t_index = 0; t_index < n_thresholds; t_index++) {
+            double thresh = thresholds[t_index];
+            int left_count = 0; 
+            int right_count = 0; 
+            float left_mean = 0.0f; 
+            float right_mean = 0.0f;
+            float delta; 
+            float x; 
+            float left_sum_squares = 0.0f; 
+            float right_sum_squares = 0.0f; 
+            
+            for (int i = 0; i < n_rows; ++i) {
+                x = ys[i]; 
+                if (feature_vec[i] <= thresh) { 
+                    left_count += 1; 
+                    delta = x - left_mean; 
+                    left_mean += delta / left_count; 
+                    left_sum_squares += delta * (x- left_mean); 
+                } else { 
+                    right_count += 1; 
+                    delta = x - right_mean; 
+                    right_mean += delta / right_count; 
+                    right_sum_squares += delta * (x- right_mean); 
+                }
+            }
+            if (left_count > 1 && right_count > 1) { 
+                float score = (left_sum_squares + right_sum_squares) / (left_count + right_count); 
+                if (score < best_score) { 
+                    best_score = score; 
+                    best_thresh = thresh; 
+                }
+            }
+        }
+        py::tuple results(2);
+        results[0] = best_thresh;
+        results[1] = best_score;
+        return_val = results;
+    """
+    return inline(code, ['feature_vec', 'thresholds', 'ys'], local_dict=None, verbose=2)
+
 def find_best_gini_split(classes, feature_vec, thresholds, labels): 
     code = """
         

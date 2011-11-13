@@ -28,6 +28,7 @@ class BaseEnsemble(BaseEstimator):
             num_models, 
             bagging_percent,
             bagging_replacement,
+            feature_subset_percent, 
             stacking_model, 
             randomize_params, 
             additive, 
@@ -36,6 +37,7 @@ class BaseEnsemble(BaseEstimator):
         self.num_models = num_models
         self.bagging_percent = bagging_percent 
         self.bagging_replacement = bagging_replacement 
+        self.feature_subset_percent = feature_subset_percent 
         self.stacking_model = stacking_model 
         self.randomize_params = randomize_params 
         self.additive = additive 
@@ -58,8 +60,8 @@ class BaseEnsemble(BaseEstimator):
         X = np.atleast_2d(X)
         Y = np.atleast_1d(Y) 
         
-        n = X.shape[0]
-        bagsize = int(math.ceil(self.bagging_percent * n))
+        n_rows, total_features = X.shape
+        bagsize = int(math.ceil(self.bagging_percent * n_rows))
         
         
         if self.additive: 
@@ -70,18 +72,29 @@ class BaseEnsemble(BaseEstimator):
         
         # each derived class needs to implement this 
         self._init_fit(X,Y)
-        
+        if self.feature_subset_percent < 1:
+            n_features = int(self.feature_subset_percent * total_features)
+            self.feature_subsets = [] 
+        else:
+            n_features = total_features 
+            self.feature_subsets = None 
+            
         for i in xrange(self.num_models):
             if self.verbose:
                 print "Training iteration", i 
                 
             if self.bagging_replacement: 
-                indices = np.random.random_integers(0,n-1,bagsize)
+                indices = np.random.random_integers(0,n_rows-1,bagsize)
             else:
-                p = np.random.permutation(n)
+                p = np.random.permutation(n_rows)
                 indices = p[:bagsize] 
                 
             data_subset = X[indices, :]
+            if n_features < total_features: 
+                feature_indices = np.random.permutation(total_features)[:n_features]
+                self.feature_subsets.append(feature_indices)
+                data_subset = data_subset[:, feature_indices]
+                
             label_subset = Y[indices] 
             model = deepcopy(self.base_model)
             # randomize parameters using given functions
@@ -89,10 +102,13 @@ class BaseEnsemble(BaseEstimator):
                 setattr(model, param_name, fn())
             model.fit(data_subset, label_subset, **fit_keywords)
             self.models.append(model)
+            self._created_model(X, Y, indices, i, model)
             
             if self.additive: 
-                Y = Y - model.predict(X) 
-            self._created_model(X, Y, indices, i, model)
+                if n_features < total_features:
+                    Y -= model.predict(X[:, feature_indices])
+                else: 
+                    Y -= model.predict(X)
             
         # stacking works by treating the outputs of each base classifier as the 
         # inputs to an additional meta-classifier
@@ -109,7 +125,13 @@ class BaseEnsemble(BaseEstimator):
         n_samples, n_features = X.shape    
         n_models = len(self.models)
         pred = np.zeros([n_samples, n_models])
-        for i, model in enumerate(self.models):
-            pred[:, i] = model.predict(X)
+        if self.feature_subsets:
+            for i, model in enumerate(self.models):
+                feature_indices = self.feature_subsets[i]
+                X_subset = X[:, feature_indices] 
+                pred[:, i] = model.predict(X_subset)
+        else:
+            for i, model in enumerate(self.models):
+                pred[:, i] = model.predict(X)
         return pred
     
