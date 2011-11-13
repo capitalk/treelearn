@@ -15,15 +15,27 @@
 # Lesser General Public License for more details.
 
 import numpy as np 
+
+from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.linear_model import LinearRegression, Ridge 
+
 from regression_ensemble import RegressionEnsemble
-from cluster_regression import ClusterRegression 
+from classifier_ensemble import ClassifierEnsemble 
+from clustered_regression import ClusteredRegression 
+from clustered_classifier import ClusteredClassifier
 from randomized_tree import RandomizedTree 
 from oblique_tree import ObliqueTree
-from classifier_ensemble import ClassifierEnsemble 
-from sklearn.svm import LinearSVC
-from sklearn.linear_model import LogisticRegression, SGDClassifier, LinearRegression, Ridge 
 
-def train_random_forest(X, Y, num_trees = 10, max_thresholds = 10, bagging_percent=0.65,  **tree_args):
+
+def train_random_forest(
+        X, 
+        Y, 
+        num_trees = 20, 
+        max_thresholds = 100, 
+        max_height = None, 
+        min_leaf_size = None, 
+        bagging_percent=0.65):
     """A random forest is a bagging ensemble of randomized trees, so it can
     be implemented by combining the BaggedClassifier and RandomizedTree objects.
     This function is just a helper to your life easier.
@@ -37,24 +49,45 @@ def train_random_forest(X, Y, num_trees = 10, max_thresholds = 10, bagging_perce
     
     num_trees : how big is the forest?
     
+    max_thresholds : rather than evaluating all possible thresholds at each 
+        split, randomly sample this number of thresholds
+    
+    max_height : don't let tree grow past given height, inferred if omitted. 
+    
+    min_leaf_size : don't split nodes smaller than this, inferred if omitted. 
+    
     bagging_percent : what subset of the data is each tree trained on?
     
     **tree_args :  parameters for individual decision tree. 
     """
     if isinstance(Y[0], float):
         regression = True
-        ensemble_class = RegressionEnsemble 
     else: 
         regression = False 
-        ensemble_class = ClassifierEnsemble 
-    tree = RandomizedTree(regression = regression, max_thresholds = max_thresholds, **tree_args)
-
-    
-    forest = ensemble_class (
-        base_model = tree, 
-        num_models=num_trees,
-        bagging_percent = bagging_percent
+    if max_height is None: 
+        max_height = int(np.log2(X.shape[0])) + 1
+    if min_leaf_size is None: 
+        min_leaf_size = int(np.log2(X.shape[0])) 
+        
+    tree = RandomizedTree(
+        regression = regression, 
+        max_thresholds = max_thresholds, 
+        max_height = max_height, 
+        min_leaf_size = min_leaf_size, 
     )
+
+    if regression:
+        forest = RegressionEnsemble(
+            base_model = tree, 
+            num_models= num_trees,
+            bagging_percent = bagging_percent
+        )
+    else: 
+        forest = ClassifierEnsemble(
+            base_model = tree, 
+            num_models = num_trees, 
+            bagging_percent = bagging_percent
+        )
     forest.fit(X,Y)
     return forest
     
@@ -144,7 +177,13 @@ def train_sgd_tree(X, Y, max_depth=3, randomize_alpha=False, model_args = {}, tr
     tree.fit(X, Y)
     return tree 
     
-def train_sgd_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, randomize_alpha=False, model_args = {}, tree_args= {}):
+def train_sgd_forest(X, Y, 
+        num_trees = 20, 
+        max_depth = 3, 
+        bagging_percent=0.65, 
+        randomize_alpha=False, 
+        model_args = {}, 
+        tree_args= {}):
     """A random forest whose base classifier is a tree of SGD classifiers
     
     Parameters
@@ -173,34 +212,97 @@ def train_sgd_forest(X, Y, num_trees = 10, max_depth = 3, bagging_percent=0.65, 
     forest.fit(X,Y)
     return forest
 
-def train_clustered_ols(X, Y, k = 10): 
+def train_clustered_ols(X, Y, k = 20): 
     """Cluster data and then train a linear regressor per cluster"""
-    cr = ClusterRegression(k)
+    cr = ClusteredRegression(k)
     cr.fit(X, Y)
     return cr 
 
-def mk_regression_ensemble(lowest_k = 3, highest_k = 50, num_models = 10, stacking= False, additive=False, bagging_percent = 0.65, feature_subset_percent=0.5): 
+def train_clustered_svm(X, Y, k = 20, C = 1):
+    base_model = LinearSVC(C = C)
+    cc = ClusteredClassifier(k = k, base_model = base_model)
+    cc.fit(X, Y)
+    return cc 
+
+def mk_clustered_svm_ensemble(
+        num_models = 20, 
+        C = 1, 
+        k = 20, 
+        stacking= False, 
+        bagging_percent = 0.65, 
+        feature_subset_percent=0.5): 
+    
+    base_model = LinearSVC(C = C)
+    clustered_model = ClusteredClassifier(k, base_model = base_model)
+    
+    if stacking:
+        stacking_model = LogisticRegression(fit_intercept=False)
+    else:
+        stacking_model = None 
+        
+    return ClassifierEnsemble(
+        base_model = clustered_model, 
+        num_models = num_models, 
+        bagging_percent = bagging_percent, 
+        feature_subset_percent = feature_subset_percent, 
+        stacking_model = stacking_model)
+
+def train_clustered_svm_ensemble(
+        X, 
+        Y, 
+        num_models = 10, 
+        C = 1, 
+        k =  20, 
+        stacking= False, 
+        bagging_percent = 0.65, 
+        feature_subset_percent=0.5): 
+    ensemble = mk_clustered_svm_ensemble(
+                num_models, 
+                C, 
+                k, 
+                stacking, 
+                bagging_percent, 
+                feature_subset_percent)
+    ensemble.fit(X, Y)
+    return ensemble 
+
+def mk_clustered_regression_ensemble(
+            num_models = 20, 
+            k = 20,
+            stacking= False, 
+            additive=False, 
+            bagging_percent = 0.65, 
+            feature_subset_percent=0.5):
+
+
+    clustered_model = ClusteredRegression(k=k, base_model = LinearRegression())
+    
     if stacking:
         stacking_model = LinearRegression(fit_intercept=False)
     else:
         stacking_model = None 
-    def random_k():
-        return np.random.randint(lowest_k, highest_k+1)
+        
     return RegressionEnsemble(
-        base_model = ClusterRegression(highest_k), 
+        base_model = clustered_model, 
         num_models = num_models, 
         bagging_percent = bagging_percent, 
         feature_subset_percent = feature_subset_percent, 
         stacking_model = stacking_model, 
-        randomize_params = {'k': random_k}, 
         additive = additive 
     )
     
-def train_regression_ensemble(X, Y, lowest_k = 2, highest_k = 50, num_models=10, stacking=False, additive=False, bagging_percent = 0.65, feature_subset_percent=0.5):
-    ensemble = mk_regression_ensemble (
-        lowest_k = lowest_k, 
-        highest_k = highest_k, 
+def train_clustered_regression_ensemble(
+        X, 
+        Y, 
+        num_models=10, 
+        k = 20,
+        stacking=False, 
+        additive=False, 
+        bagging_percent = 0.65, 
+        feature_subset_percent=0.5):
+    ensemble = mk_clustered_regression_ensemble (
         num_models = num_models, 
+        k = k, 
         stacking = stacking, 
         additive = additive, 
         bagging_percent = bagging_percent, 
@@ -209,8 +311,18 @@ def train_regression_ensemble(X, Y, lowest_k = 2, highest_k = 50, num_models=10,
     ensemble.fit(X, Y)
     return ensemble 
 
-def mk_additive_regression_forest(num_trees=50, bagging_percent = 0.65, feature_subset_percent = 0.5, max_height=3, min_leaf_size=10, max_thresholds=50):
-    tree = RandomizedTree(max_height= max_height, min_leaf_size=min_leaf_size, max_thresholds=max_thresholds, regression=True)
+def mk_additive_regression_forest(
+        num_trees=50, 
+        bagging_percent = 0.65, 
+        feature_subset_percent = 0.5, 
+        max_height=3, 
+        min_leaf_size=10, 
+        max_thresholds=100):
+    tree = RandomizedTree(
+        max_height= max_height, 
+        min_leaf_size=min_leaf_size, 
+        max_thresholds=max_thresholds, 
+        regression=True)
     forest = RegressionEnsemble(
         base_model = tree, 
         num_models=num_trees,
@@ -219,8 +331,20 @@ def mk_additive_regression_forest(num_trees=50, bagging_percent = 0.65, feature_
         additive=True)
     return forest 
     
-def train_additive_regression_forest(X, Y, num_trees=50, bagging_percent = 0.65, feature_subset_percent = 0.5, max_height=3, min_leaf_size=10, max_thresholds=50):
-    forest = mk_additive_regression_forest(num_trees, bagging_percent, feature_subset_percent, max_height, min_leaf_size, max_thresholds)
+def train_additive_regression_forest(X, Y, 
+        num_trees=50, 
+        bagging_percent = 0.65, 
+        feature_subset_percent = 0.5, 
+        max_height=3, 
+        min_leaf_size=10, 
+        max_thresholds=50):
+    forest = mk_additive_regression_forest(
+        num_trees, 
+        bagging_percent, 
+        feature_subset_percent, 
+        max_height, 
+        min_leaf_size, 
+        max_thresholds)
     forest.fit(X,Y)
     return forest 
     

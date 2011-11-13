@@ -45,7 +45,7 @@ class RandomizedTree(BaseEstimator):
     def __init__(self, 
             num_features_per_node=None, 
             min_leaf_size=10, 
-            max_height = 12, 
+            max_height = 20, 
             max_thresholds=None, 
             regression =  False, 
             feature_names = None, 
@@ -63,13 +63,8 @@ class RandomizedTree(BaseEstimator):
             self.get_thresholds = self.random_threshold_subset 
         self.regression = regression 
         if regression: 
-            self.find_best_split = find_min_variance_split
-            self.leaf_function = np.mean 
             self.leaf_dtype = 'float' 
         else:
-            self.find_best_split = lambda vec, thresholds, labels: \
-                find_best_gini_split(self.classes, vec, thresholds, labels)
-            self.leaf_function = lambda labels: majority(labels, self.classes)
             self.leaf_dtype = 'int'
             
         self.verbose = verbose 
@@ -93,7 +88,10 @@ class RandomizedTree(BaseEstimator):
         n_samples = data.shape[0]
         if n_samples <= self.min_leaf_size or height > self.max_height:
             self.nleaves += 1
-            return ConstantLeaf(self.leaf_function(labels))
+            if self.regression:
+                return ConstantLeaf(np.mean(labels))
+            else: 
+                return ConstantLeaf(majority(labels, self.classes))
         elif np.all(labels == labels[0]):
             self.nleaves += 1
             return ConstantLeaf(labels[0])
@@ -106,12 +104,19 @@ class RandomizedTree(BaseEstimator):
             best_split_score = np.inf
             best_feature_idx = None
             best_thresh = None 
-            classes = self.classes
             
             for feature_idx in random_feature_indices:
                 feature_vec = data[:, feature_idx]
                 thresholds = self.get_thresholds(feature_vec)
-                thresh, combined_score = self.find_best_split(feature_vec, thresholds, labels)
+                
+                
+                if self.regression:
+                    thresh, combined_score = \
+                        find_min_variance_split(feature_vec, thresholds, labels)
+                else:
+                    thresh, combined_score = \
+                        find_best_gini_split(self.classes, feature_vec, thresholds, labels)
+                
                 if combined_score < best_split_score:
                     best_split_score = combined_score
                     best_feature_idx = feature_idx
@@ -143,7 +148,7 @@ class RandomizedTree(BaseEstimator):
         data = np.atleast_2d(data)
         labels = np.atleast_1d(labels)
         
-        if self.classes is None and not self.regression: 
+        if not self.regression: 
             self.classes = np.unique(labels)
             self.nclasses = len(self.classes)
         self.feature_names = feature_names 

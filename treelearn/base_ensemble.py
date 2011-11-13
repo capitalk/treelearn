@@ -73,7 +73,7 @@ class BaseEnsemble(BaseEstimator):
         # each derived class needs to implement this 
         self._init_fit(X,Y)
         if self.feature_subset_percent < 1:
-            n_features = int(self.feature_subset_percent * total_features)
+            n_features = int(math.ceil(self.feature_subset_percent * total_features))
             self.feature_subsets = [] 
         else:
             n_features = total_features 

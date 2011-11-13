@@ -23,10 +23,10 @@ from sklearn.linear_model import LogisticRegression
 
 n = 200
 left_data = np.random.randn(n, 10)
-left_labels = np.zeros(n)
+left_labels = np.zeros(n, dtype='int')
 
 right_data = 10*(np.random.randn(n,10)-2)
-right_labels = np.ones(n)
+right_labels = np.ones(n, dtype='int')
 
 data = np.concatenate([left_data, right_data])
 labels = np.concatenate([left_labels, right_labels])

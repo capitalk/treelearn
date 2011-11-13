@@ -45,16 +45,18 @@ class ClassifierEnsemble(BaseEnsemble):
             bagging_percent=0.5, 
             bagging_replacement=True, 
             feature_subset_percent = 1.0, 
-            weighting=None, 
-            stacking_model=None,
+            weighting = None, 
+            stacking_model = None,
             randomize_params = {}, 
             verbose=False):
                 
-        BaseEnsemble.__init__(self, 
+        BaseEnsemble.__init__(
+            self, 
             base_model, 
             num_models, 
             bagging_percent,
             bagging_replacement, 
+            feature_subset_percent, 
             stacking_model, 
             randomize_params, 
             False, # for now additive only works for regression 

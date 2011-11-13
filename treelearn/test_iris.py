@@ -14,7 +14,9 @@ classifiers = [
     recipes.train_sgd_tree, 
     #recipes.train_svm_forest, 
     #recipes.train_sgd_forest, 
-    recipes.train_random_forest
+    recipes.train_random_forest,
+    recipes.train_clustered_svm, 
+    recipes.train_clustered_svm_ensemble
 ]
 
 def test_all_classifiers():

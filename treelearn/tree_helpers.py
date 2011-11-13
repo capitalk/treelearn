@@ -278,8 +278,8 @@ def find_min_variance_split(feature_vec, thresholds, ys):
 def find_best_gini_split(classes, feature_vec, thresholds, labels): 
     code = """
         
-        int num_classes = Nclasses[0]; 
         int n_labels = Nlabels[0]; 
+        int n_classes = Nclasses[0];
         int n_thresholds = Nthresholds[0]; 
         
         float best_score = 10000000.0; 
@@ -331,7 +331,7 @@ def find_best_gini_split(classes, feature_vec, thresholds, labels):
                except for the last class, whose size can be inferred from the 
                difference between left_count and total_left
             */ 
-            for (int class_index = 1; class_index < num_classes - 1; ++class_index) { 
+            for (int class_index = 1; class_index < n_classes - 1; ++class_index) { 
                 int c = classes[class_index]; 
                 left_class_count = 0; 
                 right_class_count = 0; 
@@ -382,5 +382,4 @@ def find_best_gini_split(classes, feature_vec, thresholds, labels):
         results[1] = best_score;
         return_val = results;
     """ 
-    return inline(code, ['classes', 'feature_vec', 'thresholds', 'labels'], \
-        local_dict=None, verbose=2)
+    return inline(code, ['classes', 'feature_vec', 'thresholds', 'labels'], verbose=2)

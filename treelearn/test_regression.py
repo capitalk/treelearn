@@ -9,8 +9,9 @@ from sklearn.linear_model import LinearRegression
 
 regressors = [
     recipes.train_clustered_ols, 
-    recipes.train_regression_ensemble,
-    recipes.train_additive_regression_forest
+    lambda x, y: recipes.train_clustered_regression_ensemble(x, y, feature_subset_percent=1), 
+    #recipes.train_additive_regression_forest, 
+    recipes.train_random_forest
 ]
 def test_all_regressors():
     x, y  = make_friedman2(10000)
