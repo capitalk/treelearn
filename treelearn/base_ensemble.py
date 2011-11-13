@@ -15,7 +15,7 @@
 # Lesser General Public License for more details.
 
 
-import copy 
+from copy import deepcopy 
 import numpy as np 
 import random 
 import math 
@@ -30,6 +30,7 @@ class BaseEnsemble(BaseEstimator):
             bagging_replacement,
             stacking_model, 
             randomize_params, 
+            additive, 
             verbose):
         self.base_model = base_model
         self.num_models = num_models
@@ -37,9 +38,11 @@ class BaseEnsemble(BaseEstimator):
         self.bagging_replacement = bagging_replacement 
         self.stacking_model = stacking_model 
         self.randomize_params = randomize_params 
+        self.additive = additive 
         self.verbose = verbose
         self.need_to_fit = True
         self.models = None
+        self.weights = None 
         
         
     def fit(self, X, Y, **fit_keywords):
@@ -57,7 +60,13 @@ class BaseEnsemble(BaseEstimator):
         
         n = X.shape[0]
         bagsize = int(math.ceil(self.bagging_percent * n))
-
+        
+        
+        if self.additive: 
+            self.weights = np.ones(self.num_models, dtype='float') 
+        else:
+            self.weights = np.ones(self.num_models, dtype='float') / self.num_models            
+        
         
         # each derived class needs to implement this 
         self._init_fit(X,Y)
@@ -74,16 +83,17 @@ class BaseEnsemble(BaseEstimator):
                 
             data_subset = X[indices, :]
             label_subset = Y[indices] 
-            model = copy.deepcopy(self.base_model)
+            model = deepcopy(self.base_model)
             # randomize parameters using given functions
             for param_name, fn in self.randomize_params.items():
                 setattr(model, param_name, fn())
             model.fit(data_subset, label_subset, **fit_keywords)
             self.models.append(model)
             
+            if self.additive: 
+                Y = Y - model.predict(X) 
             self._created_model(X, Y, indices, i, model)
-    
-        
+            
         # stacking works by treating the outputs of each base classifier as the 
         # inputs to an additional meta-classifier
         if self.stacking_model:
@@ -91,8 +101,6 @@ class BaseEnsemble(BaseEstimator):
             self.stacking_model.fit(transformed_data, Y)
         
     
-    """Can't be instantiated, since member fields like 'models' and 'weights'
-    have to be created by descendant classes"""
     def transform(self, X):
         """Convert each feature vector into a row of predictions."""
         assert self.models is not None 

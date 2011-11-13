@@ -9,9 +9,9 @@ from sklearn.linear_model import LinearRegression
 
 regressors = [
     recipes.train_clustered_ols, 
-    recipes.train_regression_ensemble
+    recipes.train_regression_ensemble,
+    recipes.train_additive_regression_forest
 ]
- 
 def test_all_regressors():
     x, y  = make_friedman2(10000)
     x_train, y_train, x_test, y_test = test_helpers.split_dataset(x,y)
@@ -32,6 +32,7 @@ def test_all_regressors():
         mse = mean_square_error(y_test, pred)
         
         print "OLS MSE:", ols_mse, " Current MSE:", mse
+        print "Ratio:",  mse / ols_mse 
         assert ols_mse > 1.1*mse
 
 

@@ -56,6 +56,7 @@ class ClassifierEnsemble(BaseEnsemble):
             bagging_replacement, 
             stacking_model, 
             randomize_params, 
+            False, # for now additive only works for regression 
             verbose)
         self.weighting = weighting 
         self.classes = None
@@ -64,7 +65,6 @@ class ClassifierEnsemble(BaseEnsemble):
     def _init_fit(self, X, Y): 
         self.classes = np.unique(Y) 
         self.class_list = list(self.classes)
-        self.weights = np.ones(self.num_models, dtype='float') / self.num_models
         
     def _created_model(self, X, Y, indices, i, model):
         # to assign an F-score weight to each classifier, 

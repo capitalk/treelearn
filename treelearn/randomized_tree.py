@@ -46,25 +46,31 @@ class RandomizedTree(BaseEstimator):
             min_leaf_size=10, 
             max_height = 200, 
             max_thresholds=None, 
-            classes = None, 
+            regression =  False, 
             feature_names = None, 
             verbose = False):
         self.root = None 
         self.num_features_per_node = num_features_per_node 
         self.min_leaf_size = min_leaf_size
         self.max_height = max_height 
-        if classes is None: 
-            self.classes = None
-            self.nclasses = 0 
-        else: 
-            self.classes = np.asarray(classes)
-            self.nclasses = len(classes) 
+        self.classes = None 
         self.feature_names = feature_names 
         self.max_thresholds = max_thresholds 
         if max_thresholds is None:
             self.get_thresholds = self.all_thresholds
         else:
-            self.get_thresholds = self.threshold_subset 
+            self.get_thresholds = self.random_threshold_subset 
+        self.regression = regression 
+        if regression: 
+            self.find_best_split = find_min_variance_split
+            self.leaf_function = np.mean 
+            self.leaf_dtype = 'float' 
+        else:
+            self.find_best_split = lambda vec, thresholds, labels: \
+                find_best_gini_split(self.classes, vec, thresholds, labels)
+            self.leaf_function = lambda labels: majority(labels, self.classes)
+            self.leaf_dtype = 'int'
+            
         self.verbose = verbose 
 
     
@@ -75,38 +81,19 @@ class RandomizedTree(BaseEstimator):
         else: 
             return x 
     
-    def threshold_subset(self, x):
-        """return a set of thresholds smaller in size than the actual number
-           of unique values"""
-        unique_vals = np.unique(x)
-        num_unique_vals = len(unique_vals)
-        k = self.max_thresholds
-        if num_unique_vals <= k: return self.all_thresholds(unique_vals)
-        else:
-            mid = unique_vals[num_unique_vals/2] 
-            half_k =(k+1)/2
-            lower = np.linspace(unique_vals[0], mid, half_k, endpoint=False)
-            upper = np.linspace(mid, unique_vals[-1], half_k)
-            return np.concatenate( (lower[1:], upper))
-
-    #def _mk_node(self, data, labels, m, height):
-        ## if labels are all same 
-        #if len(labels) <= self.min_leaf_size or height > self.max_height:
-            #self.nleaves += 1
-            #return ConstantLeaf(majority(labels, self.classes))
-            
-        #elif np.all(labels == labels[0]):
-            #self.nleaves += 1
-            #return ConstantLeaf(labels[0])
-        #else:
-            #return self._split(data, labels, m, height)
-            
-            
+    def random_threshold_subset(self, x): 
+        total = len(x)
+        k = self.max_thresholds 
+        nsamples = min(total, k)
+        indices = np.random.permutation(total)
+        indices = indices[:nsamples]
+        return self.all_thresholds(x[indices])
+    
     def _split(self, data, labels, m, height):
         n_samples = data.shape[0]
         if n_samples <= self.min_leaf_size or height > self.max_height:
             self.nleaves += 1
-            return ConstantLeaf(majority(labels, self.classes))
+            return ConstantLeaf(self.leaf_function(labels))
         elif np.all(labels == labels[0]):
             self.nleaves += 1
             return ConstantLeaf(labels[0])
@@ -124,7 +111,7 @@ class RandomizedTree(BaseEstimator):
             for feature_idx in random_feature_indices:
                 feature_vec = data[:, feature_idx]
                 thresholds = self.get_thresholds(feature_vec)
-                thresh, combined_score = find_best_gini_split(classes, feature_vec, thresholds, labels)
+                thresh, combined_score = self.find_best_split(feature_vec, thresholds, labels)
                 if combined_score < best_split_score:
                     best_split_score = combined_score
                     best_feature_idx = feature_idx
@@ -156,7 +143,7 @@ class RandomizedTree(BaseEstimator):
         data = np.atleast_2d(data)
         labels = np.atleast_1d(labels)
         
-        if self.classes is None: 
+        if self.classes is None and not self.regression: 
             self.classes = np.unique(labels)
             self.nclasses = len(self.classes)
         self.feature_names = feature_names 
@@ -173,7 +160,7 @@ class RandomizedTree(BaseEstimator):
         X = np.atleast_2d(X)
         n_samples = X.shape[0]
         # create an output array and let the tree nodes recursively fill it
-        outputs = np.zeros(n_samples)
+        outputs = np.zeros(n_samples, dtype=self.leaf_dtype)
         mask = np.ones(n_samples, dtype='bool')
         self.root.fill_predict(X, outputs, mask)
         return outputs 

@@ -171,7 +171,7 @@ def train_clustered_ols(X, Y, k = 10):
     cr.fit(X, Y)
     return cr 
 
-def mk_regression_ensemble(lowest_k = 2, highest_k = 50, num_models = 10, stacking= True): 
+def mk_regression_ensemble(lowest_k = 2, highest_k = 50, num_models = 10, stacking= False, additive=False): 
     if stacking:
         stacking_model = LinearRegression(fit_intercept=False)
     else:
@@ -182,17 +182,32 @@ def mk_regression_ensemble(lowest_k = 2, highest_k = 50, num_models = 10, stacki
         base_model = ClusterRegression(highest_k), 
         num_models = num_models, 
         stacking_model = stacking_model, 
-        randomize_params = {'k': random_k}
+        randomize_params = {'k': random_k}, 
+        additive = additive 
     )
     
-def train_regression_ensemble(X, Y, lowest_k = 2, highest_k = 50, num_models=10, stacking=True):
+def train_regression_ensemble(X, Y, lowest_k = 2, highest_k = 50, num_models=10, stacking=False, additive=False):
     ensemble = mk_regression_ensemble (
         lowest_k = lowest_k, 
         highest_k = highest_k, 
         num_models = num_models, 
-        stacking = stacking
+        stacking = stacking, 
+        additive = additive
     )
     ensemble.fit(X, Y)
     return ensemble 
+
+def mk_additive_regression_forest(num_trees=50, bagging_percent = 0.65, max_height=3, min_leaf_size=10, max_thresholds=50):
+    tree = RandomizedTree(max_height= max_height, min_leaf_size=min_leaf_size, max_thresholds=max_thresholds, regression=True)
+    forest = RegressionEnsemble(
+        base_model = tree, 
+        num_models=num_trees,
+        bagging_percent = bagging_percent, 
+        additive=True)
+    return forest 
     
+def train_additive_regression_forest(X, Y, num_trees=50, bagging_percent = 0.65, max_height=3, min_leaf_size=10, max_thresholds=50):
+    forest = mk_additive_regression_forest(num_trees, bagging_percent, max_height, min_leaf_size, max_thresholds)
+    forest.fit(X,Y)
+    return forest 
     

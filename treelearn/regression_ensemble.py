@@ -10,6 +10,7 @@ class RegressionEnsemble(BaseEnsemble):
             bagging_replacement=True, 
             stacking_model=None,
             randomize_params = {}, 
+            additive = False, 
             verbose=False):
                 
         BaseEnsemble.__init__(self, 
@@ -19,14 +20,17 @@ class RegressionEnsemble(BaseEnsemble):
             bagging_replacement, 
             stacking_model, 
             randomize_params, 
+            additive, 
             verbose)
+            
+       
         
     def predict(self, X):
         pred = self.transform(X)
         if self.stacking_model: 
             return self.stacking_model.predict(pred)
         else: 
-            return np.mean(pred, axis=1)
+            return np.dot(pred, self.weights)
 
     def _init_fit(self, X, Y): 
         pass 

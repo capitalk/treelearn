@@ -209,6 +209,24 @@ def slow_find_best_gini_split(classes, feature_vec, thresholds, labels):
             best_score = combined_score
     return best_t, best_score 
 
+def find_min_variance_split(feature_vec, thresholds, ys): 
+    best_score = np.inf
+    best_t = None
+    for t in thresholds:
+        mask = feature_vec <= t
+        left = ys[mask]
+        right = ys[~mask]
+        left_size = left.shape[0]
+        right_size = right.shape[0]
+        
+        if left_size > 0 and right_size > 0:
+            total = float(left_size + right_size)
+            score = (left_size / total) * np.var(left) + (right_size / total) * np.var(right)
+            if score < best_score:
+                best_score = score
+                best_t = t
+    return best_t, best_score 
+    
 def find_best_gini_split(classes, feature_vec, thresholds, labels): 
     code = """
         
