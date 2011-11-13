@@ -45,7 +45,7 @@ class RandomizedTree(BaseEstimator):
     def __init__(self, 
             num_features_per_node=None, 
             min_leaf_size=10, 
-            max_height = 10, 
+            max_height = 12, 
             max_thresholds=None, 
             regression =  False, 
             feature_names = None, 
