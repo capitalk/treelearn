@@ -47,16 +47,17 @@ def test_eval_split():
     print "Slow GINI", slow 
     fast = eval_gini_split(classes, feature_vec, 0.5, mixed)
     print "Fast GINI", fast 
-    assert slow == fast 
+    assert abs(slow - fast) < 0.01
 
 
 labels = np.array([0, 0, 1, 1])    
-thresholds = np.unique(feature_vec)
+thresholds = midpoints(np.unique(feature_vec))
 def test_eval_all_splits():
     thresh_slow, score_slow = slow_find_best_gini_split(classes, feature_vec, thresholds, labels)
     print "Slow Thresh", thresh_slow, "Score", score_slow
-    assert thresh_slow == 0.5 
+    
     thresh_fast, score_fast = find_best_gini_split(classes, feature_vec, thresholds, labels)
     print "Fast Thresh", thresh_fast, "Score", score_fast
-    assert thresh_fast == 0.5
+    assert thresh_slow == 0.7
+    assert thresh_fast == 0.7
     

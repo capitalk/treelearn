@@ -12,8 +12,8 @@ x_train, y_train, x_test, y_test = split_dataset(iris.data, iris.target)
 classifiers = [
     recipes.train_svm_tree, 
     recipes.train_sgd_tree, 
-    #recipes.train_svm_forest, 
-    #recipes.train_sgd_forest, 
+    recipes.train_svm_forest, 
+    recipes.train_sgd_forest, 
     recipes.train_random_forest,
     recipes.train_clustered_svm, 
     recipes.train_clustered_svm_ensemble

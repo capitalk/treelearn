@@ -122,7 +122,7 @@ class RandomizedTree(BaseEstimator):
                     best_feature_idx = feature_idx
                     best_thresh = thresh 
                     
-            left_mask = data[:, best_feature_idx] <= best_thresh 
+            left_mask = data[:, best_feature_idx] < best_thresh 
             right_mask = ~left_mask
             
             left_data = data[left_mask, :] 

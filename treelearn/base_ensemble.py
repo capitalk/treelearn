@@ -22,6 +22,9 @@ import math
 
 from sklearn.base import BaseEstimator 
 
+from tree_helpers import clear_sklearn_fields
+from typecheck import check_estimator, check_dict, check_int, check_bool
+
 class BaseEnsemble(BaseEstimator):
     def __init__(self, 
             base_model, 
@@ -33,6 +36,9 @@ class BaseEnsemble(BaseEstimator):
             randomize_params, 
             additive, 
             verbose):
+        check_estimator(base_model)
+        check_int(num_models)
+        
         self.base_model = base_model
         self.num_models = num_models
         self.bagging_percent = bagging_percent 
@@ -101,6 +107,7 @@ class BaseEnsemble(BaseEstimator):
             for param_name, fn in self.randomize_params.items():
                 setattr(model, param_name, fn())
             model.fit(data_subset, label_subset, **fit_keywords)
+            
             self.models.append(model)
             self._created_model(X, Y, indices, i, model)
             
@@ -109,7 +116,8 @@ class BaseEnsemble(BaseEstimator):
                     Y -= model.predict(X[:, feature_indices])
                 else: 
                     Y -= model.predict(X)
-            
+                    
+            clear_sklearn_fields(model) 
         # stacking works by treating the outputs of each base classifier as the 
         # inputs to an additional meta-classifier
         if self.stacking_model:

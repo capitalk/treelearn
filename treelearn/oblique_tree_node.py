@@ -96,7 +96,7 @@ class _ObliqueTreeNode(BaseEstimator):
             for field, gen in self.randomize_split_params.items():
                 setattr(self.model, field, gen())
             self.model.fit(X_reduced, Y, **fit_keywords)
-            #clear_sklearn_fields(self.model)
+            clear_sklearn_fields(self.model)
             pred = self.model.predict(X_reduced)
             
             for c in self.classes:
@@ -111,9 +111,6 @@ class _ObliqueTreeNode(BaseEstimator):
                     
     def predict(self, X):
         nrows = X.shape[0]
-        if self.verbose:
-            print "[oblique_tree_node] predict at depth", self.depth 
-            
         if self.subspace is not None:
             X_reduced = X[:, self.subspace] 
             pred = self.model.predict(X_reduced)
@@ -131,8 +128,6 @@ class _ObliqueTreeNode(BaseEstimator):
                 count = X_slice.shape[0]
                 
                 if count > 0:
-                    if self.verbose: 
-                        print "Calling predict on child", c
                     pred = self.children[c].predict(X_slice)
                     outputs[mask] = pred 
             return outputs 

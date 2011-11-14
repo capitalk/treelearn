@@ -40,7 +40,7 @@ class ClassifierEnsemble(BaseEnsemble):
     """
 
     def __init__(self, 
-            base_model=LinearSVC(), 
+            base_model = LinearSVC(), 
             num_models = 50, 
             bagging_percent=0.5, 
             bagging_replacement=True, 

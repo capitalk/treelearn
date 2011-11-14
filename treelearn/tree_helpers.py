@@ -23,8 +23,10 @@ import scipy.weave
 # some sklearn classifiers leave behind large data members after fitting
 # which make serialization a pain--- clear those fields 
 def clear_sklearn_fields(clf):
-    if hasattr(clf, 'label_'):
-        clf.label_ = None
+    # stupid reuse of the same field--- clearing this on classifiers
+    # causes them to crash 
+    #if hasattr(clf, 'label_'):
+    #    clf.label_ = None
     if hasattr(clf, 'sample_weight'):
         clf.sample_weight = None 
 
@@ -75,8 +77,9 @@ def gini(classes, labels):
 
 
 def slow_eval_split(classes, feature_vec, thresh, labels): 
-    left_labels = labels[feature_vec <= thresh]
-    right_labels = labels[feature_vec <= thresh] 
+    mask = feature_vec < thresh 
+    left_labels = labels[mask]
+    right_labels = labels[~mask] 
     left_score = slow_gini(classes, left_labels)
     right_score = slow_gini(classes, right_labels)    
     n_left = len(left_labels)
@@ -96,7 +99,7 @@ dtype2ctype = {
 }
    
 def eval_gini_split(classes, feature_vec, thresh, labels): 
-    left_mask = feature_vec <= thresh
+    left_mask = feature_vec < thresh
     code = """
         
         int num_classes = Nclasses[0]; 
@@ -195,7 +198,7 @@ def slow_find_best_gini_split(classes, feature_vec, thresholds, labels):
     
     n = len(labels) 
     for t in thresholds:
-        mask = feature_vec <= t
+        mask = feature_vec < t
         left_labels = labels[mask]
         right_labels = labels[~mask] 
         left_score = slow_gini(classes, left_labels)
@@ -213,7 +216,7 @@ def slow_find_min_variance_split(feature_vec, thresholds, ys):
     best_score = np.inf
     best_t = None
     for t in thresholds:
-        mask = feature_vec <= t
+        mask = feature_vec < t
         left = ys[mask]
         right = ys[~mask]
         left_size = left.shape[0]
@@ -248,7 +251,7 @@ def find_min_variance_split(feature_vec, thresholds, ys):
             
             for (int i = 0; i < n_rows; ++i) {
                 x = ys[i]; 
-                if (feature_vec[i] <= thresh) { 
+                if (feature_vec[i] < thresh) { 
                     left_count += 1; 
                     delta = x - left_mean; 
                     left_mean += delta / left_count; 
@@ -306,7 +309,7 @@ def find_best_gini_split(classes, feature_vec, thresholds, labels):
             int right_class_count = 0; 
             
             for (int i = 0; i < n_labels; ++i) { 
-                if (feature_vec[i] <= thresh) {
+                if (feature_vec[i] < thresh) {
                     total_left += 1; 
                     if (labels[i] == 0) left_class_count += 1; 
                 } else {

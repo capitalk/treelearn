@@ -32,7 +32,7 @@ def train_random_forest(
         X, 
         Y, 
         num_trees = 20, 
-        max_thresholds = 100, 
+        max_thresholds = 10, 
         max_height = None, 
         min_leaf_size = None, 
         bagging_percent=0.65):
@@ -64,6 +64,7 @@ def train_random_forest(
         regression = True
     else: 
         regression = False 
+        
     if max_height is None: 
         max_height = int(np.log2(X.shape[0])) + 1
     if min_leaf_size is None: 
@@ -110,8 +111,7 @@ def mk_svm_tree(max_depth = 3, randomize_C = False, model_args = {}, tree_args =
         leaf_model=leaf_classifier, 
         randomize_split_params = randomize_split_params,
         randomize_leaf_params = randomize_leaf_params, 
-        **tree_args
-    )
+        **tree_args)
     return tree 
 
 def train_svm_tree(X, Y, max_depth = 3, randomize_C = False, model_args = {}, tree_args={}):
@@ -218,9 +218,9 @@ def train_clustered_ols(X, Y, k = 20):
     cr.fit(X, Y)
     return cr 
 
-def train_clustered_svm(X, Y, k = 20, C = 1):
+def train_clustered_svm(X, Y, k = 20, C = 1, verbose = True):
     base_model = LinearSVC(C = C)
-    cc = ClusteredClassifier(k = k, base_model = base_model)
+    cc = ClusteredClassifier(k = k, base_model = base_model, verbose = verbose)
     cc.fit(X, Y)
     return cc 
 
@@ -230,10 +230,11 @@ def mk_clustered_svm_ensemble(
         k = 20, 
         stacking= False, 
         bagging_percent = 0.65, 
-        feature_subset_percent=0.5): 
+        feature_subset_percent=0.5, 
+        verbose = True): 
     
     base_model = LinearSVC(C = C)
-    clustered_model = ClusteredClassifier(k, base_model = base_model)
+    clustered_model = ClusteredClassifier(k, base_model = base_model, verbose=verbose)
     
     if stacking:
         stacking_model = LogisticRegression(fit_intercept=False)
@@ -255,14 +256,16 @@ def train_clustered_svm_ensemble(
         k =  20, 
         stacking= False, 
         bagging_percent = 0.65, 
-        feature_subset_percent=0.5): 
+        feature_subset_percent=0.5, 
+        verbose = True): 
     ensemble = mk_clustered_svm_ensemble(
                 num_models, 
                 C, 
                 k, 
                 stacking, 
                 bagging_percent, 
-                feature_subset_percent)
+                feature_subset_percent, 
+                verbose)
     ensemble.fit(X, Y)
     return ensemble 
 
