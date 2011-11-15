@@ -88,7 +88,7 @@ class BaseEnsemble(BaseEstimator):
         for i in xrange(self.num_models):
             if self.verbose:
                 print "Training iteration", i 
-                
+            
             if self.bagging_replacement: 
                 indices = np.random.random_integers(0,n_rows-1,bagsize)
             else:

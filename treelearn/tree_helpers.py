@@ -237,34 +237,24 @@ def find_min_variance_split(feature_vec, thresholds, ys):
         int n_thresholds = Nthresholds[0]; 
         int n_rows = Nys[0]; 
         
-        
         for (int t_index = 0; t_index < n_thresholds; t_index++) {
             double thresh = thresholds[t_index];
-            int left_count = 0; 
-            int right_count = 0; 
-            float left_mean = 0.0f; 
-            float right_mean = 0.0f;
-            float delta; 
+            int counts[2] = {0,0}; 
+            float means[2] = {0.0f, 0.0f}; 
+            float sum_squares[2] = {0.0f, 0.0f}; 
             float x; 
-            float left_sum_squares = 0.0f; 
-            float right_sum_squares = 0.0f; 
-            
+            float delta; 
+            bool flag; 
             for (int i = 0; i < n_rows; ++i) {
                 x = ys[i]; 
-                if (feature_vec[i] < thresh) { 
-                    left_count += 1; 
-                    delta = x - left_mean; 
-                    left_mean += delta / left_count; 
-                    left_sum_squares += delta * (x- left_mean); 
-                } else { 
-                    right_count += 1; 
-                    delta = x - right_mean; 
-                    right_mean += delta / right_count; 
-                    right_sum_squares += delta * (x- right_mean); 
-                }
+                flag = feature_vec[i] < thresh; 
+                counts[flag] += 1; 
+                delta = x - means[flag]; 
+                means[flag] += delta / counts[flag];
+                sum_squares[flag] += delta * (x - means[flag]);  
             }
-            if (left_count > 1 && right_count > 1) { 
-                float score = (left_sum_squares + right_sum_squares) / (left_count + right_count); 
+            if (counts[0] > 1 && counts[1] > 1) { 
+                float score = (sum_squares[0] + sum_squares[1]) / (counts[0] + counts[1]); 
                 if (score < best_score) { 
                     best_score = score; 
                     best_thresh = thresh; 
@@ -280,7 +270,6 @@ def find_min_variance_split(feature_vec, thresholds, ys):
 
 def find_best_gini_split(classes, feature_vec, thresholds, labels): 
     code = """
-        
         int n_labels = Nlabels[0]; 
         int n_classes = Nclasses[0];
         int n_thresholds = Nthresholds[0]; 
@@ -296,39 +285,39 @@ def find_best_gini_split(classes, feature_vec, thresholds, labels):
             
             float left_sum_squares = 0.0f; 
             float right_sum_squares = 0.0f; 
-        
-        
+            
             /* total number of elements in the left and right of the split */ 
-            int total_left = 0; 
-            int total_right = 0; 
-        
+            int totals[2] = {0, 0}; 
+            int class_counts[2] = {0,0};
+            
+            
             /* first pass for C = 0 to get total counts along with class-specific
                scores 
             */
-            int left_class_count = 0; 
-            int right_class_count = 0; 
             
+            bool choice; 
+            bool correct_class; 
             for (int i = 0; i < n_labels; ++i) { 
-                if (feature_vec[i] < thresh) {
-                    total_left += 1; 
-                    if (labels[i] == 0) left_class_count += 1; 
-                } else {
-                    total_right += 1;
-                    if (labels[i] == 0) right_class_count += 1; 
-                }
+                choice = feature_vec[i] < thresh; 
+                totals[choice] += 1; 
+                correct_class = (labels[i] == 0); 
+                class_counts[choice] += correct_class; 
             }
+            
+            int total_left = totals[0];
+            int total_right = totals[1]; 
             if (total_left > 0) {
-                float left_p = ((float) left_class_count) / total_left; 
+                float left_p = ((float) class_counts[0]) / total_left; 
                 left_sum_squares += left_p * left_p; 
             }
             if (total_right > 0) { 
-                float right_p = ((float) right_class_count) / total_right; 
+                float right_p = ((float) class_counts[1]) / total_right;
                 right_sum_squares += right_p* right_p; 
             }
             
             /* how many elements of each side have we counted in the score so far? */ 
-            int cumulative_left_count = left_class_count; 
-            int cumulative_right_count = right_class_count; 
+            int cumulative_left_count = class_counts[0]; 
+            int cumulative_right_count = class_counts[1]; 
             
             /* if we have a multi-class problem iterate over rest of classes, 
                except for the last class, whose size can be inferred from the 
@@ -336,37 +325,36 @@ def find_best_gini_split(classes, feature_vec, thresholds, labels):
             */ 
             for (int class_index = 1; class_index < n_classes - 1; ++class_index) { 
                 int c = classes[class_index]; 
-                left_class_count = 0; 
-                right_class_count = 0; 
+                class_counts[0] = 0; 
+                class_counts[1] = 0; 
                 
                 for (int i = 0; i < n_labels; ++i) {
-                    if (labels[i] == c) { 
-                        if (feature_vec[i] <= thresh) left_class_count += 1; 
-                        else right_class_count += 1; 
-                    }
+                    choice = (feature_vec[i] <= thresh); 
+                    correct_class = (labels[i] == c);
+                    class_counts[choice] += correct_class; 
                 }
-                cumulative_left_count += left_class_count; 
-                cumulative_right_count += right_class_count; 
+                cumulative_left_count += class_counts[0]; 
+                cumulative_right_count += class_counts[1]; 
                 
                 if (total_left > 0) {
-                    float left_p = ((float) left_class_count) / total_left; 
+                    float left_p = ((float) class_counts[0]) / total_left;
                     left_sum_squares += left_p * left_p; 
                 }
                 if (total_right > 0) { 
-                    float right_p = ((float) right_class_count) / total_right; 
+                    float right_p = ((float) class_counts[1]) / total_right; 
                     right_sum_squares += right_p* right_p; 
                 }
             }
             
             /* handle last class */ 
-            left_class_count = total_left - cumulative_left_count; 
-            right_class_count = total_right - cumulative_right_count; 
+            float left_count = total_left - cumulative_left_count; 
+            float right_count = total_right - cumulative_right_count; 
             if (total_left > 0) {
-                float left_p = ((float) left_class_count) / total_left; 
+                float left_p = left_count / total_left; 
                 left_sum_squares += left_p * left_p; 
             }
             if (total_right > 0) { 
-                float right_p = ((float) right_class_count) / total_right; 
+                float right_p = right_count / total_right; 
                 right_sum_squares += right_p* right_p; 
             }
             float left_gini = 1.0f - left_sum_squares; 
@@ -380,6 +368,7 @@ def find_best_gini_split(classes, feature_vec, thresholds, labels):
                 best_thresh = thresh; 
             }
         }
+        
         py::tuple results(2);
         results[0] = best_thresh;
         results[1] = best_score;

@@ -9,7 +9,8 @@ from sklearn.base import BaseEstimator
 from constant_leaf import ConstantLeaf
 from tree_node import TreeNode 
 import random 
-from tree_helpers import * 
+from tree_helpers import majority,  midpoints 
+from tree_helpers import find_best_gini_split, find_min_variance_split
 
 class RandomizedTree(BaseEstimator):
     """Decision tree which only inspects a random subset of the features
