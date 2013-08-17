@@ -69,10 +69,16 @@ class ViterbiTreeNode(BaseEstimator):
             right_prob = self.right.predict_proba(X)[:, 1]
             assignments = np.zeros(nrows)
             right_mask = (left_prob < right_prob) & Y == 1
-            assignments[]
+            
+            # TODO
+            # assignments[]
     def refit_leaves(X,Y):
+        # TODO
+        pass
         
-    def predict(X)
+    def predict(X):
+        # TODO
+        pass
         
 class ViterbiTree(BaseEstimator):
     def __init__(self, max_depth=3, num_retries = 3, leaf_model=LogisticRegression):
